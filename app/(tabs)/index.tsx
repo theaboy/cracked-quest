@@ -1,10 +1,8 @@
-import { useRef, useEffect } from "react";
 import {
   View,
   Text,
   ScrollView,
   TouchableOpacity,
-  Animated,
   StyleSheet,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -14,7 +12,10 @@ import { getCurrentTier } from "../../lib/xpUtils";
 import { useAuthStore } from "../../store/useAuthStore";
 import { useCourseStore } from "../../store/useCourseStore";
 import { useXpStore } from "../../store/useXpStore";
+import { useXpAnimation } from "../../hooks/useXpAnimation";
 import { XpProgressBar } from "../../components/XpProgressBar";
+import { XpAnimatedCounter } from "../../components/XpAnimatedCounter";
+import { RankBadge } from "../../components/RankBadge";
 import CourseCard from "../../components/CourseCard";
 
 export default function HomeScreen() {
@@ -25,16 +26,7 @@ export default function HomeScreen() {
   const streakDays = useXpStore((s) => s.streakDays);
 
   const currentTier = getCurrentTier(xpTotal);
-
-  const animatedXp = useRef(new Animated.Value(xpTotal)).current;
-
-  useEffect(() => {
-    Animated.timing(animatedXp, {
-      toValue: xpTotal,
-      duration: 600,
-      useNativeDriver: false,
-    }).start();
-  }, [xpTotal]);
+  const { animatedXp, displayXp } = useXpAnimation();
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -52,12 +44,11 @@ export default function HomeScreen() {
             </Text>
           </View>
           <View style={styles.headerRight}>
-            <Text style={styles.xpCount}>
-              {xpTotal.toLocaleString()} XP
-            </Text>
-            <View style={styles.rankBadge}>
-              <Text style={styles.rankBadgeText}>{currentTier.name}</Text>
+            <View style={styles.xpRow}>
+              <XpProgressBar animatedXp={animatedXp} size="compact" />
+              <XpAnimatedCounter displayXp={displayXp} size="compact" />
             </View>
+            <RankBadge tier={currentTier} variant="pill" />
             {streakDays > 0 && (
               <Text style={styles.streakText}>
                 {"\uD83D\uDD25"} {streakDays} day streak
@@ -132,23 +123,12 @@ const styles = StyleSheet.create({
   },
   headerRight: {
     alignItems: "flex-end",
+    gap: 6,
   },
-  xpCount: {
-    fontSize: 13,
-    fontWeight: "700",
-    color: colors.gold,
-  },
-  rankBadge: {
-    backgroundColor: "rgba(155,109,255,0.15)",
-    paddingVertical: 3,
-    paddingHorizontal: 10,
-    borderRadius: 12,
-    marginTop: 4,
-  },
-  rankBadgeText: {
-    fontSize: 11,
-    fontWeight: "600",
-    color: colors.primaryLight,
+  xpRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
   },
   streakText: {
     fontSize: 12,
