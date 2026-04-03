@@ -52,8 +52,9 @@ export default function ZigzagPath({ topics, exams }: ZigzagPathProps) {
               : nodeColor(node.topic.status);
 
           const prevIsOdd = (i - 1) % 2 !== 0;
-          // Going from even->odd means going up, odd->even means going down
-          const rotation = prevIsOdd ? `${CONNECTOR_ANGLE}deg` : `-${CONNECTOR_ANGLE}deg`;
+          // prev odd (up) → current even (down) = angle down (negative)
+          // prev even (down) → current odd (up) = angle up (positive)
+          const rotation = prevIsOdd ? `-${CONNECTOR_ANGLE}deg` : `${CONNECTOR_ANGLE}deg`;
 
           connector = (
             <View

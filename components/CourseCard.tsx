@@ -22,17 +22,18 @@ export default function CourseCard({ course }: CourseCardProps) {
   const undefeatedExams = course.exams.filter((e) => !e.defeated);
   let nearestExam: (typeof undefeatedExams)[number] | null = null;
   let daysUntilExam = 0;
-  if (undefeatedExams.length > 0) {
-    nearestExam = undefeatedExams.reduce((closest, exam) => {
+  // Filter to future undefeated exams only
+  const futureExams = undefeatedExams.filter(
+    (e) => new Date(e.examDate).getTime() > Date.now()
+  );
+  if (futureExams.length > 0) {
+    nearestExam = futureExams.reduce((closest, exam) => {
       const d = new Date(exam.examDate).getTime() - Date.now();
       const closestD = new Date(closest.examDate).getTime() - Date.now();
       return d < closestD ? exam : closest;
     });
-    daysUntilExam = Math.max(
-      1,
-      Math.ceil(
-        (new Date(nearestExam.examDate).getTime() - Date.now()) / 86400000
-      )
+    daysUntilExam = Math.ceil(
+      (new Date(nearestExam.examDate).getTime() - Date.now()) / 86400000
     );
   }
 
@@ -88,7 +89,7 @@ export default function CourseCard({ course }: CourseCardProps) {
                     { color: isUrgent ? "#FF5757" : "#B99BFF" },
                   ]}
                 >
-                  {daysUntilExam} days
+                  {daysUntilExam} {daysUntilExam === 1 ? "day" : "days"}
                 </Text>
               </View>
             )}
