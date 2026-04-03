@@ -70,7 +70,6 @@ export default function OnboardingScreen() {
   const user = useAuthStore((s) => s.user);
   const setCourses = useCourseStore((s) => s.setCourses);
   const setXp = useXpStore((s) => s.setXp);
-  const setRank = useXpStore((s) => s.setRank);
 
   const getBubbles = (): string[] => {
     const name = data.display_name || "there";
@@ -233,7 +232,6 @@ export default function OnboardingScreen() {
     }));
     setCourses(storeCourses);
     setXp(50);
-    setRank("Student");
     // Set user LAST — this triggers the root layout guard to navigate to /(tabs)
     setUser({ id: `user-${Date.now()}`, email: "", username: data.display_name });
   };

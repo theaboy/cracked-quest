@@ -21,7 +21,6 @@ export default function LoginScreen() {
   const setUser = useAuthStore((s) => s.setUser);
   const setCourses = useCourseStore((s) => s.setCourses);
   const setXp = useXpStore((s) => s.setXp);
-  const setRank = useXpStore((s) => s.setRank);
   const setStreak = useXpStore((s) => s.setStreak);
 
   const [error, setError] = useState("");
@@ -39,7 +38,6 @@ export default function LoginScreen() {
     setUser(DEMO_USER);
     setCourses(DEMO_COURSES);
     setXp(1240);
-    setRank("Grinder");
     setStreak(5);
     router.replace("/(tabs)");
   };
