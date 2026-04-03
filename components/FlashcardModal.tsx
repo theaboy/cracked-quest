@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useCallback } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import {
   Modal,
   View,
@@ -7,7 +7,7 @@ import {
   StyleSheet,
 } from "react-native";
 import { colors, radii } from "../lib/theme";
-import { QUESTION_BANK } from "../lib/questionBank";
+import { QUESTION_BANK, QuizQuestion } from "../lib/questionBank";
 import type { Topic } from "../store/useCourseStore";
 
 interface FlashcardModalProps {
@@ -24,40 +24,39 @@ export default function FlashcardModal({
   topics,
 }: FlashcardModalProps) {
   const [revealed, setRevealed] = useState(false);
+  const [question, setQuestion] = useState<QuizQuestion | null>(null);
 
-  const eligibleTopics = useMemo(
+  const eligibleTopicIds = useMemo(
     () =>
-      topics.filter(
-        (t) => t.status === "mastered" || t.status === "in_progress"
+      new Set(
+        topics
+          .filter((t) => t.status === "mastered" || t.status === "in_progress")
+          .map((t) => t.id)
       ),
     [topics]
   );
 
-  const eligibleTopicIds = useMemo(
-    () => new Set(eligibleTopics.map((t) => t.id)),
-    [eligibleTopics]
-  );
+  // Re-roll question every time modal opens
+  useEffect(() => {
+    if (visible) {
+      const pool = QUESTION_BANK.filter((q) => eligibleTopicIds.has(q.topicId));
+      if (pool.length > 0) {
+        setQuestion(pool[Math.floor(Math.random() * pool.length)]);
+      } else {
+        setQuestion(null);
+      }
+      setRevealed(false);
+    }
+  }, [visible, eligibleTopicIds]);
 
-  const question = useMemo(() => {
-    const pool = QUESTION_BANK.filter((q) => eligibleTopicIds.has(q.topicId));
-    if (pool.length === 0) return null;
-    return pool[Math.floor(Math.random() * pool.length)];
-  }, [eligibleTopicIds]);
+  const topicName = question
+    ? topics.find((t) => t.id === question.topicId)?.name ?? ""
+    : "";
 
-  const topicName = useMemo(() => {
-    if (!question) return "";
-    const topic = eligibleTopics.find((t) => t.id === question.topicId);
-    return topic?.name ?? "";
-  }, [question, eligibleTopics]);
-
-  const handleClose = useCallback(() => {
+  const handleClose = () => {
     setRevealed(false);
     onClose();
-  }, [onClose]);
-
-  if (!question) return null;
-
-  const correctAnswer = question.options[question.correctIndex];
+  };
 
   return (
     <Modal
@@ -68,29 +67,35 @@ export default function FlashcardModal({
     >
       <View style={styles.overlay}>
         <View style={styles.card}>
-          <Text style={styles.label}>
-            {courseCode} {topicName ? `\u00B7 ${topicName}` : ""}
-          </Text>
-
-          <Text style={styles.question}>{question.question}</Text>
-
-          <View style={styles.answerArea}>
-            {!revealed && <Text style={styles.tapHint}>TAP TO REVEAL</Text>}
-            <TouchableOpacity
-              activeOpacity={0.8}
-              onPress={() => setRevealed(true)}
-              disabled={revealed}
-            >
-              <Text
-                style={[
-                  styles.answer,
-                  { opacity: revealed ? 1 : 0.15 },
-                ]}
-              >
-                {correctAnswer}
+          {question ? (
+            <>
+              <Text style={styles.label}>
+                {courseCode} {topicName ? `\u00B7 ${topicName}` : ""}
               </Text>
-            </TouchableOpacity>
-          </View>
+
+              <Text style={styles.question}>{question.question}</Text>
+
+              <View style={styles.answerArea}>
+                {!revealed && <Text style={styles.tapHint}>TAP TO REVEAL</Text>}
+                <TouchableOpacity
+                  activeOpacity={0.8}
+                  onPress={() => setRevealed(true)}
+                  disabled={revealed}
+                >
+                  <Text style={[styles.answer, { opacity: revealed ? 1 : 0.15 }]}>
+                    {question.options[question.correctIndex]}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </>
+          ) : (
+            <View style={styles.emptyState}>
+              <Text style={styles.emptyText}>No questions available yet</Text>
+              <Text style={styles.emptySubtext}>
+                Start studying to unlock review questions
+              </Text>
+            </View>
+          )}
 
           <TouchableOpacity style={styles.doneButton} onPress={handleClose}>
             <Text style={styles.doneText}>DONE</Text>
@@ -144,6 +149,21 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: colors.text1,
     fontWeight: "600",
+  },
+  emptyState: {
+    alignItems: "center",
+    paddingVertical: 20,
+  },
+  emptyText: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: colors.text2,
+  },
+  emptySubtext: {
+    fontSize: 13,
+    color: colors.text3,
+    marginTop: 6,
+    marginBottom: 20,
   },
   doneButton: {
     backgroundColor: colors.primary,
