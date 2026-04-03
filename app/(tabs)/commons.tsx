@@ -10,13 +10,13 @@ import {
   View,
 } from "react-native";
 import { useCommonsStore, type ResourceType } from "../../store/useCommonsStore";
-import { useAuthStore } from "../../store/useAuthStore";
+import { useAuthStore } from "../../store/useAuthStore"; // static accessor only — never used as a hook
 import { useXpStore } from "../../store/useXpStore";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
-const COURSES = ["All", "COMP 551", "COMP 251", "COMP 206"] as const;
 const DEMO_COURSES = ["COMP 551", "COMP 251", "COMP 206"] as const;
+const COURSES = ["All", ...DEMO_COURSES] as const;
 
 const RESOURCE_TYPES: ResourceType[] = [
   "Notes",
@@ -35,7 +35,7 @@ const TYPE_BADGE_COLORS: Record<ResourceType, string> = {
 };
 
 function generateId(): string {
-  return `r-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+  return `r-${Date.now()}-${Math.floor(Math.random() * 1_000_000)}`;
 }
 
 // ─── Screen ───────────────────────────────────────────────────────────────────
@@ -152,63 +152,65 @@ export default function CommonsScreen() {
       >
         <View style={styles.modalOverlay}>
           <View style={styles.modalCard}>
-            <Text style={styles.modalTitle}>Upload Resource</Text>
+            <ScrollView keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
+              <Text style={styles.modalTitle}>Upload Resource</Text>
 
-            <Text style={styles.fieldLabel}>TITLE *</Text>
-            <TextInput
-              style={styles.textInput}
-              value={formTitle}
-              onChangeText={setFormTitle}
-              placeholder="e.g. COMP 551 Midterm W2025"
-              placeholderTextColor="#6b7280"
-              returnKeyType="done"
-            />
+              <Text style={styles.fieldLabel}>TITLE *</Text>
+              <TextInput
+                style={styles.textInput}
+                value={formTitle}
+                onChangeText={setFormTitle}
+                placeholder="e.g. COMP 551 Midterm W2025"
+                placeholderTextColor="#6b7280"
+                returnKeyType="done"
+              />
 
-            <Text style={styles.fieldLabel}>TYPE</Text>
-            <View style={styles.chipRow}>
-              {RESOURCE_TYPES.map((t) => (
-                <TouchableOpacity
-                  key={t}
-                  style={[
-                    styles.chip,
-                    formType === t && { backgroundColor: TYPE_BADGE_COLORS[t], borderColor: TYPE_BADGE_COLORS[t] },
-                  ]}
-                  onPress={() => setFormType(t)}
-                >
-                  <Text style={[styles.chipText, formType === t && styles.chipTextSelected]}>
-                    {t}
-                  </Text>
+              <Text style={styles.fieldLabel}>TYPE</Text>
+              <View style={styles.chipRow}>
+                {RESOURCE_TYPES.map((t) => (
+                  <TouchableOpacity
+                    key={t}
+                    style={[
+                      styles.chip,
+                      formType === t && { backgroundColor: TYPE_BADGE_COLORS[t], borderColor: TYPE_BADGE_COLORS[t] },
+                    ]}
+                    onPress={() => setFormType(t)}
+                  >
+                    <Text style={[styles.chipText, formType === t && styles.chipTextSelected]}>
+                      {t}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+
+              <Text style={styles.fieldLabel}>COURSE</Text>
+              <View style={styles.chipRow}>
+                {DEMO_COURSES.map((c) => (
+                  <TouchableOpacity
+                    key={c}
+                    style={[styles.chip, formCourse === c && styles.chipCourseSelected]}
+                    onPress={() => setFormCourse(c)}
+                  >
+                    <Text style={[styles.chipText, formCourse === c && styles.chipTextSelected]}>
+                      {c}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+
+              <View style={styles.modalButtons}>
+                <TouchableOpacity style={styles.cancelButton} onPress={() => setModalVisible(false)}>
+                  <Text style={styles.cancelButtonText}>Cancel</Text>
                 </TouchableOpacity>
-              ))}
-            </View>
-
-            <Text style={styles.fieldLabel}>COURSE</Text>
-            <View style={styles.chipRow}>
-              {DEMO_COURSES.map((c) => (
                 <TouchableOpacity
-                  key={c}
-                  style={[styles.chip, formCourse === c && styles.chipCourseSelected]}
-                  onPress={() => setFormCourse(c)}
+                  style={[styles.submitButton, !formTitle.trim() && styles.submitButtonDisabled]}
+                  onPress={handleUpload}
+                  disabled={!formTitle.trim()}
                 >
-                  <Text style={[styles.chipText, formCourse === c && styles.chipTextSelected]}>
-                    {c}
-                  </Text>
+                  <Text style={styles.submitButtonText}>Upload</Text>
                 </TouchableOpacity>
-              ))}
-            </View>
-
-            <View style={styles.modalButtons}>
-              <TouchableOpacity style={styles.cancelButton} onPress={() => setModalVisible(false)}>
-                <Text style={styles.cancelButtonText}>Cancel</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.submitButton, !formTitle.trim() && styles.submitButtonDisabled]}
-                onPress={handleUpload}
-                disabled={!formTitle.trim()}
-              >
-                <Text style={styles.submitButtonText}>Upload</Text>
-              </TouchableOpacity>
-            </View>
+              </View>
+            </ScrollView>
           </View>
         </View>
       </Modal>
@@ -227,7 +229,7 @@ const styles = StyleSheet.create({
   uploadButton:         { backgroundColor: "#7c3aed", borderRadius: 10, paddingVertical: 8, paddingHorizontal: 16 },
   uploadButtonText:     { fontSize: 14, fontWeight: "700", color: "#ffffff" },
 
-  filterBar:            { flexGrow: 0, marginBottom: 12 },
+  filterBar:            { flexGrow: 0, height: 44, marginBottom: 12 },
   filterBarContent:     { paddingHorizontal: 20, gap: 8 },
   filterPill:           { borderRadius: 20, borderWidth: 1.5, borderColor: "#3d3d5e", paddingVertical: 6, paddingHorizontal: 14 },
   filterPillActive:     { backgroundColor: "#7c3aed", borderColor: "#7c3aed" },
@@ -246,7 +248,7 @@ const styles = StyleSheet.create({
   cardTitle:            { fontSize: 15, fontWeight: "700", color: "#ffffff", marginBottom: 4, lineHeight: 20 },
   cardMeta:             { fontSize: 12, color: "#6b7280" },
 
-  downloadButton:       { alignItems: "center", minWidth: 40 },
+  downloadButton:       { alignItems: "center", justifyContent: "center", minWidth: 44, minHeight: 44 },
   downloadIcon:         { fontSize: 20, color: "#7c3aed", marginBottom: 2 },
   downloadCount:        { fontSize: 12, fontWeight: "700", color: "#a78bfa" },
 
