@@ -57,11 +57,6 @@ export default function HomeScreen() {
           </View>
         </View>
 
-        {/* XP Progress Bar */}
-        <View style={styles.xpBarContainer}>
-          <XpProgressBar animatedXp={animatedXp} size="full" />
-        </View>
-
         {/* Course Cards */}
         {courses.length > 0 ? (
           courses.map((course) => (
@@ -134,9 +129,6 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: colors.text3,
     marginTop: 4,
-  },
-  xpBarContainer: {
-    marginBottom: 20,
   },
   emptyState: {
     alignItems: "center",
