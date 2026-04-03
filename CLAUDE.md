@@ -1,10 +1,25 @@
-# CLAUDE.md
+# CLAUDE.md — GetCracked Project Memory
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
 ## Project Overview
 
-StudyQuest is a mobile-first gamified academic engagement app targeting McGill University students (Phase 1). It turns studying, attending class, and collaborating into an MMORPG-style game with XP, rank tiers, leaderboards, and a 3D progression map.
+GetCracked is a mobile-first gamified academic engagement app targeting McGill University students (Phase 1). It turns studying, attending class, and collaborating into an MMORPG-style game with XP, rank tiers, leaderboards, and a 3D progression map.
+
+## Mascot
+- **Name:** Crack — a cute purple slime with round glasses and a graduation cap
+- **Image:** `assets/crack-mascot.png`
+- **Usage:** Login screen, onboarding (speech bubbles — conversational flow like Duolingo), key moments
+
+## Design System (from moodboard v1.0)
+- **Theme file:** `lib/theme.ts`
+- **Bg:** `#0C0C10` | **Surface:** `#141418` / `#1C1C22` | **Border:** `#2E2E3E`
+- **Primary:** `#9B6DFF` (purple) | **Light:** `#B99BFF` | **Dark:** `#6B3FD4`
+- **Gold:** `#F5C842` | **Success:** `#4EFFB4` | **Danger:** `#FF5757`
+- **Text:** `#F0EFF8` (primary) / `#9896AA` (secondary) / `#5C5B6E` (muted)
+- **Buttons:** Pill-shaped (borderRadius 50), uppercase, letter-spacing 0.8
+- **Fonts:** Sora (display), DM Sans (body) — system fonts as fallback
+- **Mood:** "Feels like opening a game, not a planner" — inspired by Clash Royale, Runify, Duolingo
 
 ## Key Documents
 
@@ -62,10 +77,15 @@ app/                    # Expo Router screens
     _layout.tsx         # Tabs layout
     index.tsx           # Progress Map (home tab)
   map/[courseId].tsx    # Per-course 3D Babylon.js map
+components/             # Reusable UI: ChatBubble, OptionCard, TypingIndicator
+hooks/                  # Custom hooks: useBubbleSequence
 lib/
   supabase.ts           # Supabase client (reads EXPO_PUBLIC_ env vars)
+  theme.ts              # Design system constants (colors, spacing, radii)
+  mockData.ts           # Demo user, courses, leaderboard data
 store/
   useAuthStore.ts       # Auth state: user, isLoading, setUser, clearUser
+  useCourseStore.ts     # Course/topic/exam state
   useStudyStore.ts      # Study session state
   useXpStore.ts         # XP/rank state
 supabase/functions/     # Deno Edge Functions (Deno runtime, JSR imports)
@@ -103,6 +123,7 @@ ANTHROPIC_API_KEY=sk-ant-...
 ## Current State
 
 - Issue #3 (Study Mode UI) is complete: `study.tsx`, `useStudyStore`, `lib/supabase.ts`, and `award_xp` Edge Function are implemented on branch `feature/issue-3-study-mode-ui`
+- Issue #1 (Onboarding) redesigned: 10-screen conversational flow with Crack mascot, speech bubbles, typing indicators
 - `useStudyStore` has a two-phase reset: `endSession()` stops the timer but **preserves `elapsedSeconds`** so the summary modal can read it; `resetSession()` clears everything and is called only after the modal is dismissed
 - Edge Functions (`breakdown`, `quiz-gen`, `flashcards`, `award_xp`) are all stubs — no DB writes yet
 - `@babylonjs/react-native` is not yet in `package.json` — add it before working on the 3D map
