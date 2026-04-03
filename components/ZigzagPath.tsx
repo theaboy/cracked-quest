@@ -1,5 +1,5 @@
 import React from "react";
-import { View, Text, StyleSheet } from "react-native";
+import { View, Text, StyleSheet, useWindowDimensions } from "react-native";
 import { colors } from "../lib/theme";
 import type { Topic, Exam } from "../store/useCourseStore";
 
@@ -10,8 +10,7 @@ interface ZigzagPathProps {
 
 const NODE_SIZE = 28;
 const BOSS_NODE_SIZE = 32;
-const CONNECTOR_LENGTH = 24;
-const CONNECTOR_ANGLE = 25;
+const VERTICAL_OFFSET = 18;
 
 function nodeColor(status: Topic["status"]) {
   switch (status) {
@@ -25,103 +24,129 @@ function nodeColor(status: Topic["status"]) {
 }
 
 export default function ZigzagPath({ topics, exams }: ZigzagPathProps) {
+  const { width: screenWidth } = useWindowDimensions();
   const hasUndefeatedExam = exams.some((e) => !e.defeated);
 
-  // Build list of renderable nodes
-  const nodes: Array<
-    | { kind: "topic"; topic: Topic; index: number }
-    | { kind: "boss" }
-  > = topics.map((topic, index) => ({ kind: "topic" as const, topic, index }));
+  const totalNodes = topics.length + (hasUndefeatedExam ? 1 : 0);
+  if (totalNodes === 0) return null;
 
-  if (hasUndefeatedExam) {
-    nodes.push({ kind: "boss" as const });
+  // Calculate horizontal spacing to fit all nodes
+  const availableWidth = screenWidth - 160; // card padding + button area
+  const nodeSpacing = Math.max(NODE_SIZE + 4, availableWidth / totalNodes);
+  const containerHeight = NODE_SIZE + VERTICAL_OFFSET * 2 + 8;
+  const centerY = containerHeight / 2;
+
+  // Build node positions
+  const positions: { x: number; y: number }[] = [];
+  for (let i = 0; i < totalNodes; i++) {
+    const x = i * nodeSpacing + NODE_SIZE / 2;
+    const y = centerY + (i % 2 === 0 ? -VERTICAL_OFFSET : VERTICAL_OFFSET);
+    positions.push({ x, y });
   }
 
   return (
-    <View style={styles.container}>
-      {nodes.map((node, i) => {
-        const isOdd = i % 2 !== 0;
-        const marginTop = isOdd ? -16 : 16;
+    <View style={[styles.container, { height: containerHeight, width: totalNodes * nodeSpacing }]}>
+      {/* Draw connector lines between nodes */}
+      {positions.map((pos, i) => {
+        if (i === 0) return null;
+        const prev = positions[i - 1];
+        const dx = pos.x - prev.x;
+        const dy = pos.y - prev.y;
+        const fullLength = Math.sqrt(dx * dx + dy * dy);
+        const angle = Math.atan2(dy, dx) * (180 / Math.PI);
 
-        // Connector to THIS node (drawn before the node, except for first)
-        let connector: React.ReactNode = null;
-        if (i > 0) {
-          const connectorColor =
-            node.kind === "boss"
-              ? colors.danger
-              : nodeColor(node.topic.status);
+        // Shorten line by the radius of each node so it stops at the circle border
+        const prevRadius = NODE_SIZE / 2;
+        const currRadius = (i < topics.length) ? NODE_SIZE / 2 : BOSS_NODE_SIZE / 2;
+        const shortenTotal = prevRadius + currRadius;
+        const lineLength = Math.max(0, fullLength - shortenTotal);
 
-          const prevIsOdd = (i - 1) % 2 !== 0;
-          // prev odd (up) → current even (down) = angle down (negative)
-          // prev even (down) → current odd (up) = angle up (positive)
-          const rotation = prevIsOdd ? `-${CONNECTOR_ANGLE}deg` : `${CONNECTOR_ANGLE}deg`;
+        // Offset the start point along the direction by prevRadius
+        const unitX = dx / fullLength;
+        const unitY = dy / fullLength;
+        const startX = prev.x + unitX * prevRadius;
+        const startY = prev.y + unitY * prevRadius;
 
-          connector = (
-            <View
-              style={[
-                styles.connector,
-                {
-                  backgroundColor: connectorColor,
-                  transform: [{ rotate: rotation }],
-                },
-              ]}
-            />
-          );
+        // Determine line color from destination node
+        let lineColor: string;
+        if (i < topics.length) {
+          lineColor = nodeColor(topics[i].status);
+        } else {
+          lineColor = colors.danger;
         }
 
-        if (node.kind === "boss") {
-          return (
-            <React.Fragment key="boss">
-              {connector}
-              <View style={[styles.bossNode, { marginTop }]}>
-                <Text style={styles.bossEmoji}>{"\uD83D\uDC79"}</Text>
-              </View>
-            </React.Fragment>
-          );
-        }
+        return (
+          <View
+            key={`line-${i}`}
+            style={{
+              position: "absolute",
+              left: startX,
+              top: startY - 1,
+              width: lineLength,
+              height: 2,
+              backgroundColor: lineColor,
+              transform: [{ rotate: `${angle}deg` }],
+              transformOrigin: "left center",
+            }}
+          />
+        );
+      })}
 
-        const { topic, index } = node;
+      {/* Draw topic nodes */}
+      {topics.map((topic, i) => {
+        const pos = positions[i];
         const isMastered = topic.status === "mastered";
         const isInProgress = topic.status === "in_progress";
         const isLocked = topic.status === "locked";
 
-        const nodeStyles = [
-          styles.node,
-          { marginTop },
-          isMastered && styles.nodeMastered,
-          isInProgress && styles.nodeInProgress,
-          isLocked && styles.nodeLocked,
-        ];
-
         return (
-          <React.Fragment key={topic.id}>
-            {connector}
-            <View style={nodeStyles}>
-              {isMastered ? (
-                <Text style={styles.checkText}>{"\u2713"}</Text>
-              ) : (
-                <Text
-                  style={[
-                    styles.numberText,
-                    isLocked && styles.numberTextLocked,
-                  ]}
-                >
-                  {index + 1}
-                </Text>
-              )}
-            </View>
-          </React.Fragment>
+          <View
+            key={topic.id}
+            style={[
+              styles.node,
+              {
+                position: "absolute",
+                left: pos.x - NODE_SIZE / 2,
+                top: pos.y - NODE_SIZE / 2,
+              },
+              isMastered && styles.nodeMastered,
+              isInProgress && styles.nodeInProgress,
+              isLocked && styles.nodeLocked,
+            ]}
+          >
+            {isMastered ? (
+              <Text style={styles.checkText}>{"\u2713"}</Text>
+            ) : (
+              <Text style={[styles.numberText, isLocked && styles.numberTextLocked]}>
+                {i + 1}
+              </Text>
+            )}
+          </View>
         );
       })}
+
+      {/* Draw boss node */}
+      {hasUndefeatedExam && (
+        <View
+          style={[
+            styles.bossNode,
+            {
+              position: "absolute",
+              left: positions[totalNodes - 1].x - BOSS_NODE_SIZE / 2,
+              top: positions[totalNodes - 1].y - BOSS_NODE_SIZE / 2,
+            },
+          ]}
+        >
+          <Text style={styles.bossEmoji}>{"\uD83D\uDC79"}</Text>
+        </View>
+      )}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    height: 70,
-    flexDirection: "row",
-    alignItems: "center",
+    marginVertical: 8,
   },
   node: {
     width: NODE_SIZE,
@@ -160,10 +185,6 @@ const styles = StyleSheet.create({
   },
   numberTextLocked: {
     color: colors.text3,
-  },
-  connector: {
-    width: CONNECTOR_LENGTH,
-    height: 2,
   },
   bossNode: {
     width: BOSS_NODE_SIZE,
