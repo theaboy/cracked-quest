@@ -1,7 +1,22 @@
-# CLAUDE.md — StudyQuest Project Memory
+# CLAUDE.md — GetCracked Project Memory
 
 ## Project Overview
-StudyQuest is a mobile-first gamified academic engagement app targeting McGill University students (Phase 1). It turns studying, attending class, and collaborating into an MMORPG-style game with XP, rank tiers, leaderboards, and a 3D progression map.
+GetCracked is a mobile-first gamified academic engagement app targeting McGill University students (Phase 1). It turns studying, attending class, and collaborating into an MMORPG-style game with XP, rank tiers, leaderboards, and a 3D progression map.
+
+## Mascot
+- **Name:** Crack — a cute purple slime with round glasses and a graduation cap
+- **Image:** `assets/crack-mascot.png`
+- **Usage:** Login screen, onboarding (speech bubbles — conversational flow like Duolingo), key moments
+
+## Design System (from moodboard v1.0)
+- **Theme file:** `lib/theme.ts`
+- **Bg:** `#0C0C10` | **Surface:** `#141418` / `#1C1C22` | **Border:** `#2E2E3E`
+- **Primary:** `#9B6DFF` (purple) | **Light:** `#B99BFF` | **Dark:** `#6B3FD4`
+- **Gold:** `#F5C842` | **Success:** `#4EFFB4` | **Danger:** `#FF5757`
+- **Text:** `#F0EFF8` (primary) / `#9896AA` (secondary) / `#5C5B6E` (muted)
+- **Buttons:** Pill-shaped (borderRadius 50), uppercase, letter-spacing 0.8
+- **Fonts:** Sora (display), DM Sans (body) — system fonts as fallback
+- **Mood:** "Feels like opening a game, not a planner" — inspired by Clash Royale, Runify, Duolingo
 
 ## Key Documents
 - `PRD.md` — Full product requirements (features, game design, phase roadmap)
