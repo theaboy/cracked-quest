@@ -1,0 +1,161 @@
+import React, { useMemo, useState, useCallback } from "react";
+import {
+  Modal,
+  View,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+} from "react-native";
+import { colors, radii } from "../lib/theme";
+import { QUESTION_BANK } from "../lib/questionBank";
+import type { Topic } from "../store/useCourseStore";
+
+interface FlashcardModalProps {
+  visible: boolean;
+  onClose: () => void;
+  courseCode: string;
+  topics: Topic[];
+}
+
+export default function FlashcardModal({
+  visible,
+  onClose,
+  courseCode,
+  topics,
+}: FlashcardModalProps) {
+  const [revealed, setRevealed] = useState(false);
+
+  const eligibleTopics = useMemo(
+    () =>
+      topics.filter(
+        (t) => t.status === "mastered" || t.status === "in_progress"
+      ),
+    [topics]
+  );
+
+  const eligibleTopicIds = useMemo(
+    () => new Set(eligibleTopics.map((t) => t.id)),
+    [eligibleTopics]
+  );
+
+  const question = useMemo(() => {
+    const pool = QUESTION_BANK.filter((q) => eligibleTopicIds.has(q.topicId));
+    if (pool.length === 0) return null;
+    return pool[Math.floor(Math.random() * pool.length)];
+  }, [eligibleTopicIds]);
+
+  const topicName = useMemo(() => {
+    if (!question) return "";
+    const topic = eligibleTopics.find((t) => t.id === question.topicId);
+    return topic?.name ?? "";
+  }, [question, eligibleTopics]);
+
+  const handleClose = useCallback(() => {
+    setRevealed(false);
+    onClose();
+  }, [onClose]);
+
+  if (!question) return null;
+
+  const correctAnswer = question.options[question.correctIndex];
+
+  return (
+    <Modal
+      visible={visible}
+      transparent
+      animationType="fade"
+      onRequestClose={handleClose}
+    >
+      <View style={styles.overlay}>
+        <View style={styles.card}>
+          <Text style={styles.label}>
+            {courseCode} {topicName ? `\u00B7 ${topicName}` : ""}
+          </Text>
+
+          <Text style={styles.question}>{question.question}</Text>
+
+          <View style={styles.answerArea}>
+            {!revealed && <Text style={styles.tapHint}>TAP TO REVEAL</Text>}
+            <TouchableOpacity
+              activeOpacity={0.8}
+              onPress={() => setRevealed(true)}
+              disabled={revealed}
+            >
+              <Text
+                style={[
+                  styles.answer,
+                  { opacity: revealed ? 1 : 0.15 },
+                ]}
+              >
+                {correctAnswer}
+              </Text>
+            </TouchableOpacity>
+          </View>
+
+          <TouchableOpacity style={styles.doneButton} onPress={handleClose}>
+            <Text style={styles.doneText}>DONE</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    </Modal>
+  );
+}
+
+const styles = StyleSheet.create({
+  overlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.7)",
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 24,
+  },
+  card: {
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.primary,
+    borderRadius: radii.lg,
+    padding: 24,
+    width: "100%",
+  },
+  label: {
+    fontSize: 10,
+    textTransform: "uppercase",
+    color: colors.text3,
+    letterSpacing: 1,
+    marginBottom: 12,
+  },
+  question: {
+    fontSize: 16,
+    color: colors.text1,
+    fontWeight: "600",
+    marginBottom: 24,
+  },
+  answerArea: {
+    marginBottom: 24,
+  },
+  tapHint: {
+    fontSize: 10,
+    textTransform: "uppercase",
+    color: colors.text3,
+    letterSpacing: 1,
+    marginBottom: 8,
+  },
+  answer: {
+    fontSize: 16,
+    color: colors.text1,
+    fontWeight: "600",
+  },
+  doneButton: {
+    backgroundColor: colors.primary,
+    borderRadius: radii.pill,
+    paddingVertical: 12,
+    alignItems: "center",
+  },
+  doneText: {
+    color: colors.white,
+    fontWeight: "700",
+    fontSize: 14,
+    textTransform: "uppercase",
+    letterSpacing: 0.8,
+  },
+});
