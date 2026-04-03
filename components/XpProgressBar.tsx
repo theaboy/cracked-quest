@@ -1,81 +1,88 @@
-import { View, Text, StyleSheet } from "react-native";
+// components/XpProgressBar.tsx
+
+import { View, Text, Animated, StyleSheet } from "react-native";
 import { colors } from "../lib/theme";
+import { getCurrentTier, getNextTier, getTierColor } from "../lib/xpUtils";
+import { useXpStore } from "../store/useXpStore";
 
-const TIERS = [
-  { name: "Student", threshold: 0 },
-  { name: "Grinder", threshold: 500 },
-  { name: "Scholar", threshold: 1500 },
-  { name: "Veteran", threshold: 3500 },
-  { name: "Elite", threshold: 7000 },
-  { name: "Legend", threshold: 12000 },
-] as const;
-
-type TierName = (typeof TIERS)[number]["name"];
-
-interface Props {
-  xpTotal: number;
-  rankTier: TierName;
+interface XpProgressBarProps {
+  animatedXp: Animated.Value;
+  size: "compact" | "full";
 }
 
-function getTierIndex(tier: TierName): number {
-  return TIERS.findIndex((t) => t.name === tier);
-}
+export function XpProgressBar({ animatedXp, size }: XpProgressBarProps) {
+  const xpTotal = useXpStore((s) => s.xpTotal);
+  const currentTier = getCurrentTier(xpTotal);
+  const nextTier = getNextTier(xpTotal);
+  const tierColor = getTierColor(xpTotal);
 
-export default function XpProgressBar({ xpTotal, rankTier }: Props) {
-  const currentIndex = getTierIndex(rankTier);
-  const isMaxTier = currentIndex >= TIERS.length - 1;
+  const rangeStart = currentTier.threshold;
+  const rangeEnd = nextTier ? nextTier.threshold : currentTier.threshold + 1;
 
-  const currentThreshold = TIERS[currentIndex].threshold;
-  const nextTier = isMaxTier ? null : TIERS[currentIndex + 1];
-  const nextThreshold = nextTier ? nextTier.threshold : currentThreshold;
+  const animatedWidth = animatedXp.interpolate({
+    inputRange: [rangeStart, rangeEnd],
+    outputRange: ["0%", "100%"],
+    extrapolate: "clamp",
+  });
 
-  const range = nextThreshold - currentThreshold;
-  const progress = range > 0 ? Math.min((xpTotal - currentThreshold) / range, 1) : 1;
-  const progressPercent = Math.max(progress, 0) * 100;
+  const barHeight = size === "compact" ? 6 : 10;
+  const barRadius = barHeight / 2;
 
   return (
-    <View style={styles.container}>
-      <View style={styles.labelRow}>
-        <Text style={styles.labelText}>{rankTier.toUpperCase()}</Text>
-        {nextTier ? (
-          <Text style={styles.labelText}>
-            {nextTier.name.toUpperCase()} at {nextThreshold.toLocaleString()} XP
+    <View>
+      <View
+        style={[
+          styles.barBackground,
+          {
+            height: barHeight,
+            borderRadius: barRadius,
+            width: size === "compact" ? 90 : "100%",
+          },
+        ]}
+      >
+        <Animated.View
+          style={[
+            styles.barFill,
+            {
+              height: barHeight,
+              borderRadius: barRadius,
+              backgroundColor: tierColor,
+              width: animatedWidth,
+            },
+          ]}
+        />
+      </View>
+      {size === "full" && nextTier && (
+        <View style={styles.labelRow}>
+          <Text style={styles.tierLabel}>
+            {currentTier.name} — {currentTier.threshold.toLocaleString()} XP
           </Text>
-        ) : (
-          <Text style={styles.labelText}>MAX RANK</Text>
-        )}
-      </View>
-      <View style={styles.track}>
-        <View style={[styles.fill, { width: `${progressPercent}%` }]} />
-      </View>
+          <Text style={styles.tierLabel}>
+            {nextTier.name} — {nextTier.threshold.toLocaleString()} XP
+          </Text>
+        </View>
+      )}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    gap: 6,
+  barBackground: {
+    backgroundColor: colors.surface2,
+    overflow: "hidden",
+  },
+  barFill: {
+    position: "absolute",
+    left: 0,
+    top: 0,
   },
   labelRow: {
     flexDirection: "row",
     justifyContent: "space-between",
-    alignItems: "center",
+    marginTop: 4,
   },
-  labelText: {
+  tierLabel: {
+    fontSize: 11,
     color: colors.text3,
-    fontSize: 10,
-    fontWeight: "600",
-    letterSpacing: 0.5,
-  },
-  track: {
-    height: 6,
-    backgroundColor: colors.surface3,
-    borderRadius: 3,
-    overflow: "hidden",
-  },
-  fill: {
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: colors.primary,
   },
 });
