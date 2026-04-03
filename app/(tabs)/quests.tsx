@@ -35,11 +35,11 @@ export default function QuestsScreen() {
   }
 
   function handleTaskCheck(questId: string, taskId: string, alreadyDone: boolean) {
+    if (alreadyDone) return; // tasks are one-way completions in P1
     toggleTask(questId, taskId);
-    if (!alreadyDone) {
-      addXp(15);
-      showXpToast("+15 XP");
-    }
+    // TODO: Replace with server-side award_xp Edge Function call (source: 'task') before production
+    addXp(15);
+    showXpToast("+15 XP");
   }
 
   function showXpToast(label: string) {
