@@ -213,6 +213,7 @@ export function getRandomQuestion(topicId: string): QuizQuestion | null {
   return pool[Math.floor(Math.random() * pool.length)];
 }
 
+// TODO: Compute dynamically from exams.exam_date once the DB is seeded
 const EXAM_COUNTDOWN: Record<string, string> = {
   t1: "Midterm in 12 days",
   t2: "Midterm in 12 days",

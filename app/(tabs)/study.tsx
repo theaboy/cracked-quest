@@ -45,6 +45,7 @@ export default function StudyScreen() {
   const [activeQuestion, setActiveQuestion] = useState<QuizQuestion | null>(null);
   const [selectedAnswerIndex, setSelectedAnswerIndex] = useState<number | null>(null);
   const xpToastScale = useRef(new Animated.Value(0.5)).current;
+  const answerTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const { isStudying, isPaused, elapsedSeconds, startSession, pauseSession, resumeSession, tick } =
     useStudyStore();
@@ -119,7 +120,6 @@ export default function StudyScreen() {
     setActiveQuestion(question);
     setSelectedAnswerIndex(null);
     setQuizPhase("question");
-    xpToastScale.setValue(0.5);
     setQuizVisible(true);
   }
 
@@ -127,7 +127,7 @@ export default function StudyScreen() {
     if (selectedAnswerIndex !== null || activeQuestion === null) return;
     setSelectedAnswerIndex(index);
     const isCorrect = index === activeQuestion.correctIndex;
-    setTimeout(() => {
+    answerTimeoutRef.current = setTimeout(() => {
       if (isCorrect) {
         // TODO: Wire through award_xp Edge Function (source: 'quiz') before production
         useXpStore.getState().addXp(10);
@@ -139,6 +139,7 @@ export default function StudyScreen() {
   }
 
   function handleDismissQuiz() {
+    if (answerTimeoutRef.current) clearTimeout(answerTimeoutRef.current);
     setQuizVisible(false);
     setActiveQuestion(null);
     setSelectedAnswerIndex(null);
@@ -218,17 +219,20 @@ export default function StudyScreen() {
             <TouchableOpacity
               style={styles.pauseButton}
               onPress={isPaused ? resumeSession : pauseSession}
+              disabled={quizVisible}
             >
               <Text style={styles.pauseButtonText}>{isPaused ? "Resume" : "Pause"}</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.endButton} onPress={handleEndSession}>
+            <TouchableOpacity style={styles.endButton} onPress={handleEndSession} disabled={quizVisible}>
               <Text style={styles.endButtonText}>End Session</Text>
             </TouchableOpacity>
           </View>
 
-          <TouchableOpacity style={styles.quizCheckpointButton} onPress={handleOpenQuiz}>
-            <Text style={styles.quizCheckpointButtonText}>Quiz Checkpoint</Text>
-          </TouchableOpacity>
+          {view === "active" && (
+            <TouchableOpacity style={styles.quizCheckpointButton} onPress={handleOpenQuiz}>
+              <Text style={styles.quizCheckpointButtonText}>Quiz Checkpoint</Text>
+            </TouchableOpacity>
+          )}
         </View>
       )}
 
@@ -250,7 +254,7 @@ export default function StudyScreen() {
                 <View style={styles.quizOptions}>
                   {activeQuestion.options.map((option, index) => (
                     <TouchableOpacity
-                      key={index}
+                      key={`${activeQuestion.id}-${index}`}
                       style={[
                         styles.quizOptionButton,
                         selectedAnswerIndex !== null && index === activeQuestion.correctIndex && styles.quizOptionCorrect,
