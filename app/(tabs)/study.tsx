@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   View,
   Text,
@@ -7,11 +7,17 @@ import {
   Modal,
   SafeAreaView,
   ScrollView,
+  Animated,
 } from "react-native";
 import { useStudyStore } from "../../store/useStudyStore";
 import { useXpStore } from "../../store/useXpStore";
 import { useAuthStore } from "../../store/useAuthStore";
 import { supabase } from "../../lib/supabase";
+import {
+  getRandomQuestion,
+  getExamCountdown,
+  type QuizQuestion,
+} from "../../lib/questionBank";
 
 const MOCK_TOPICS = [
   { id: "t1", name: "Linear Regression", course: "COMP 551" },
@@ -33,6 +39,14 @@ export default function StudyScreen() {
   const [summaryXp, setSummaryXp] = useState(0);
   const [summaryDuration, setSummaryDuration] = useState(0);
 
+  // --- Quiz state ---
+  const [quizVisible, setQuizVisible] = useState(false);
+  const [quizPhase, setQuizPhase] = useState<"question" | "correct" | "wrong">("question");
+  const [activeQuestion, setActiveQuestion] = useState<QuizQuestion | null>(null);
+  const [selectedAnswerIndex, setSelectedAnswerIndex] = useState<number | null>(null);
+  const xpToastScale = useRef(new Animated.Value(0.5)).current;
+  const answerTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   const { isStudying, isPaused, elapsedSeconds, startSession, pauseSession, resumeSession, tick } =
     useStudyStore();
 
@@ -41,6 +55,18 @@ export default function StudyScreen() {
     const id = setInterval(() => tick(), 1000);
     return () => clearInterval(id);
   }, [isStudying, isPaused, tick]);
+
+  useEffect(() => {
+    if (quizPhase === "correct") {
+      xpToastScale.setValue(0.5);
+      Animated.spring(xpToastScale, {
+        toValue: 1,
+        useNativeDriver: true,
+        tension: 120,
+        friction: 7,
+      }).start();
+    }
+  }, [quizPhase]);
 
   function handleStartSession() {
     startSession(selectedMode, selectedTopicId);
@@ -83,6 +109,42 @@ export default function StudyScreen() {
     setView("setup");
     setSummaryXp(0);
     setSummaryDuration(0);
+  }
+
+  function handleOpenQuiz() {
+    const { currentTopicId } = useStudyStore.getState();
+    if (!currentTopicId) return;
+    const question = getRandomQuestion(currentTopicId);
+    if (!question) return;
+    pauseSession();
+    setActiveQuestion(question);
+    setSelectedAnswerIndex(null);
+    setQuizPhase("question");
+    setQuizVisible(true);
+  }
+
+  function handleSelectAnswer(index: number) {
+    if (selectedAnswerIndex !== null || activeQuestion === null) return;
+    setSelectedAnswerIndex(index);
+    const isCorrect = index === activeQuestion.correctIndex;
+    answerTimeoutRef.current = setTimeout(() => {
+      if (isCorrect) {
+        // TODO: Wire through award_xp Edge Function (source: 'quiz') before production
+        useXpStore.getState().addXp(10);
+        setQuizPhase("correct");
+      } else {
+        setQuizPhase("wrong");
+      }
+    }, 700);
+  }
+
+  function handleDismissQuiz() {
+    if (answerTimeoutRef.current) clearTimeout(answerTimeoutRef.current);
+    setQuizVisible(false);
+    setActiveQuestion(null);
+    setSelectedAnswerIndex(null);
+    setQuizPhase("question");
+    resumeSession();
   }
 
   const selectedTopic = MOCK_TOPICS.find((t) => t.id === selectedTopicId);
@@ -157,15 +219,99 @@ export default function StudyScreen() {
             <TouchableOpacity
               style={styles.pauseButton}
               onPress={isPaused ? resumeSession : pauseSession}
+              disabled={quizVisible}
             >
               <Text style={styles.pauseButtonText}>{isPaused ? "Resume" : "Pause"}</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.endButton} onPress={handleEndSession}>
+            <TouchableOpacity style={styles.endButton} onPress={handleEndSession} disabled={quizVisible}>
               <Text style={styles.endButtonText}>End Session</Text>
             </TouchableOpacity>
           </View>
+
+          {view === "active" && (
+            <TouchableOpacity style={styles.quizCheckpointButton} onPress={handleOpenQuiz}>
+              <Text style={styles.quizCheckpointButtonText}>Quiz Checkpoint</Text>
+            </TouchableOpacity>
+          )}
         </View>
       )}
+
+      {/* ── QUIZ CHECKPOINT MODAL ── */}
+      <Modal
+        visible={quizVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={handleDismissQuiz}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.quizModalCard}>
+
+            {/* phase: question */}
+            {quizPhase === "question" && activeQuestion !== null && (
+              <>
+                <Text style={styles.quizLabel}>QUIZ CHECKPOINT</Text>
+                <Text style={styles.quizQuestion}>{activeQuestion.question}</Text>
+                <View style={styles.quizOptions}>
+                  {activeQuestion.options.map((option, index) => (
+                    <TouchableOpacity
+                      key={`${activeQuestion.id}-${index}`}
+                      style={[
+                        styles.quizOptionButton,
+                        selectedAnswerIndex !== null && index === activeQuestion.correctIndex && styles.quizOptionCorrect,
+                        selectedAnswerIndex !== null && index === selectedAnswerIndex && index !== activeQuestion.correctIndex && styles.quizOptionWrong,
+                        selectedAnswerIndex !== null && index !== activeQuestion.correctIndex && index !== selectedAnswerIndex && styles.quizOptionDimmed,
+                      ]}
+                      onPress={() => handleSelectAnswer(index)}
+                      disabled={selectedAnswerIndex !== null}
+                    >
+                      <Text style={styles.quizOptionText}>{option}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </>
+            )}
+
+            {/* phase: correct */}
+            {quizPhase === "correct" && (
+              <>
+                <Text style={styles.quizResultTitle}>CORRECT!</Text>
+                <Animated.Text
+                  style={[styles.quizXpToast, { transform: [{ scale: xpToastScale }] }]}
+                >
+                  +10 XP
+                </Animated.Text>
+                <Text style={styles.quizResultSub}>Keep it up!</Text>
+                <TouchableOpacity style={styles.dismissButton} onPress={handleDismissQuiz}>
+                  <Text style={styles.dismissButtonText}>Continue Studying</Text>
+                </TouchableOpacity>
+              </>
+            )}
+
+            {/* phase: wrong */}
+            {quizPhase === "wrong" && activeQuestion !== null && (
+              <>
+                <Text style={styles.quizResultWrongTitle}>Not quite.</Text>
+                <Text style={styles.quizResultSub}>
+                  {"Correct answer:\n"}
+                  <Text style={styles.quizCorrectAnswerText}>
+                    {activeQuestion.options[activeQuestion.correctIndex]}
+                  </Text>
+                </Text>
+                <Text style={styles.quizExamCountdown}>
+                  {getExamCountdown(activeQuestion.topicId)}
+                </Text>
+                <Text style={styles.quizEncouragement}>
+                  Review this concept — you've got time.
+                </Text>
+                <TouchableOpacity style={styles.dismissButton} onPress={handleDismissQuiz}>
+                  <Text style={styles.dismissButtonText}>Keep Studying</Text>
+                </TouchableOpacity>
+              </>
+            )}
+
+          </View>
+        </View>
+      </Modal>
 
       {/* ── SUMMARY MODAL ── */}
       <Modal visible={view === "summary"} transparent animationType="fade">
@@ -393,5 +539,120 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "700",
     color: "#ffffff",
+  },
+
+  // ── Quiz trigger button ──────────────────────────────────────────────────
+  quizCheckpointButton: {
+    marginTop: 28,
+    borderWidth: 2,
+    borderColor: "#7c3aed",
+    borderRadius: 14,
+    paddingVertical: 14,
+    paddingHorizontal: 32,
+    backgroundColor: "transparent",
+  },
+  quizCheckpointButtonText: {
+    fontSize: 15,
+    fontWeight: "700",
+    color: "#a78bfa",
+    letterSpacing: 0.5,
+  },
+
+  // ── Quiz modal ───────────────────────────────────────────────────────────
+  quizModalCard: {
+    backgroundColor: "#1e1e3a",
+    borderRadius: 20,
+    margin: 24,
+    padding: 28,
+    borderWidth: 1,
+    borderColor: "#7c3aed",
+  },
+  quizLabel: {
+    fontSize: 11,
+    fontWeight: "700",
+    color: "#7c3aed",
+    letterSpacing: 2,
+    textAlign: "center",
+    marginBottom: 16,
+  },
+  quizQuestion: {
+    fontSize: 17,
+    fontWeight: "700",
+    color: "#ffffff",
+    textAlign: "center",
+    lineHeight: 24,
+    marginBottom: 24,
+  },
+  quizOptions: {
+    gap: 10,
+  },
+  quizOptionButton: {
+    backgroundColor: "#2d2d4e",
+    borderRadius: 12,
+    padding: 14,
+    borderWidth: 1,
+    borderColor: "#4b5563",
+  },
+  quizOptionText: {
+    fontSize: 15,
+    color: "#d1d5db",
+    textAlign: "center",
+  },
+  quizOptionCorrect: {
+    backgroundColor: "#065f46",
+    borderColor: "#10b981",
+  },
+  quizOptionWrong: {
+    backgroundColor: "#7f1d1d",
+    borderColor: "#ef4444",
+  },
+  quizOptionDimmed: {
+    opacity: 0.4,
+  },
+  quizResultTitle: {
+    fontSize: 22,
+    fontWeight: "800",
+    color: "#10b981",
+    textAlign: "center",
+    marginBottom: 8,
+  },
+  quizXpToast: {
+    fontSize: 42,
+    fontWeight: "900",
+    color: "#fbbf24",
+    textAlign: "center",
+    marginBottom: 8,
+  },
+  quizResultSub: {
+    fontSize: 15,
+    color: "#9ca3af",
+    textAlign: "center",
+    marginBottom: 24,
+    lineHeight: 22,
+  },
+  quizResultWrongTitle: {
+    fontSize: 22,
+    fontWeight: "800",
+    color: "#f87171",
+    textAlign: "center",
+    marginBottom: 12,
+  },
+  quizCorrectAnswerText: {
+    color: "#10b981",
+    fontWeight: "700",
+  },
+  quizExamCountdown: {
+    fontSize: 14,
+    fontWeight: "700",
+    color: "#fbbf24",
+    textAlign: "center",
+    marginTop: 16,
+    marginBottom: 4,
+  },
+  quizEncouragement: {
+    fontSize: 13,
+    color: "#6b7280",
+    textAlign: "center",
+    marginBottom: 24,
   },
 });
