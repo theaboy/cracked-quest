@@ -18,14 +18,12 @@ export default function CourseCard({ course }: CourseCardProps) {
     course.topics.find((t) => t.status === "locked");
   const currentTopicLabel = currentTopic ? currentTopic.name : "All complete";
 
-  // Nearest undefeated exam
-  const undefeatedExams = course.exams.filter((e) => !e.defeated);
-  let nearestExam: (typeof undefeatedExams)[number] | null = null;
-  let daysUntilExam = 0;
-  // Filter to future undefeated exams only
-  const futureExams = undefeatedExams.filter(
-    (e) => new Date(e.examDate).getTime() > Date.now()
+  // Nearest future undefeated exam
+  const futureExams = course.exams.filter(
+    (e) => !e.defeated && new Date(e.examDate).getTime() > Date.now()
   );
+  let nearestExam: (typeof futureExams)[number] | null = null;
+  let daysUntilExam = 0;
   if (futureExams.length > 0) {
     nearestExam = futureExams.reduce((closest, exam) => {
       const d = new Date(exam.examDate).getTime() - Date.now();
@@ -63,15 +61,14 @@ export default function CourseCard({ course }: CourseCardProps) {
         <View style={styles.mainContent}>
           {/* Header row */}
           <View style={styles.headerRow}>
-            <View style={styles.headerText}>
+            <View style={styles.headerLeft}>
               <Text style={styles.courseName}>{course.name}</Text>
-              <Text style={styles.courseCode}>{course.code}</Text>
               <Text style={styles.currentTopic}>
                 Currently: {currentTopicLabel}
               </Text>
             </View>
 
-            {/* Exam badge */}
+            {/* Exam badge — pinned far right */}
             {nearestExam != null && (
               <View
                 style={[
@@ -86,7 +83,7 @@ export default function CourseCard({ course }: CourseCardProps) {
                 <Text
                   style={[
                     styles.examBadgeText,
-                    { color: isUrgent ? "#FF5757" : "#B99BFF" },
+                    { color: isUrgent ? colors.danger : colors.primaryLight },
                   ]}
                 >
                   {daysUntilExam} {daysUntilExam === 1 ? "day" : "days"}
@@ -174,18 +171,14 @@ const styles = StyleSheet.create({
     alignItems: "flex-start",
     marginBottom: 12,
   },
-  headerText: {
+  headerLeft: {
     flex: 1,
+    marginRight: 8,
   },
   courseName: {
     fontSize: 16,
     fontWeight: "700",
     color: colors.text1,
-  },
-  courseCode: {
-    fontSize: 12,
-    color: colors.text3,
-    marginTop: 2,
   },
   currentTopic: {
     fontSize: 12,
@@ -194,10 +187,10 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   examBadge: {
-    paddingHorizontal: 8,
+    paddingHorizontal: 10,
     paddingVertical: 4,
-    borderRadius: radii.sm,
-    marginLeft: 8,
+    borderRadius: 12,
+    flexShrink: 0,
   },
   examBadgeText: {
     fontSize: 11,
