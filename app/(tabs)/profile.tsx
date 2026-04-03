@@ -1,4 +1,5 @@
-import { View, Text, StyleSheet, SafeAreaView, ScrollView } from "react-native";
+import { View, Text, StyleSheet, ScrollView } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { colors } from "../../lib/theme";
 import { getCurrentTier } from "../../lib/xpUtils";
 import { useXpStore } from "../../store/useXpStore";
