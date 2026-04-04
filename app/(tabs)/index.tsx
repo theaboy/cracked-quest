@@ -1,6 +1,7 @@
 import {
   View,
   Text,
+  Image,
   ScrollView,
   TouchableOpacity,
   StyleSheet,
@@ -50,9 +51,16 @@ export default function HomeScreen() {
             </View>
             <RankBadge tier={currentTier} variant="pill" />
             {streakDays > 0 && (
-              <Text style={styles.streakText}>
-                {"\uD83D\uDD25"} {streakDays} day streak
-              </Text>
+              <View style={styles.streakRow}>
+                <Image
+                  source={require("../../assets/streak-flame.png")}
+                  style={styles.streakFlame}
+                  resizeMode="contain"
+                />
+                <Text style={styles.streakText}>
+                  {streakDays} day streak
+                </Text>
+              </View>
             )}
           </View>
         </View>
@@ -125,10 +133,19 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: 10,
   },
+  streakRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    marginTop: 4,
+  },
+  streakFlame: {
+    width: 24,
+    height: 24,
+  },
   streakText: {
     fontSize: 12,
     color: colors.text3,
-    marginTop: 4,
   },
   emptyState: {
     alignItems: "center",
