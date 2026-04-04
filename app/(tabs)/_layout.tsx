@@ -12,7 +12,7 @@ const TAB_CONFIG: Record<
   index: { label: "MAP", icon: "map-outline", activeIcon: "map" },
   study: { label: "STUDY", icon: "timer-outline", activeIcon: "timer" },
   quests: { label: "QUESTS", icon: "flag-outline", activeIcon: "flag" },
-  commons: { label: "COMMONS", icon: "grid-outline", activeIcon: "grid" },
+  commons: { label: "COMMUNITY", icon: "chatbubbles-outline", activeIcon: "chatbubbles" },
   profile: { label: "RANK", icon: "trophy-outline", activeIcon: "trophy" },
 };
 
