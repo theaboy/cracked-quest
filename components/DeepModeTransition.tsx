@@ -46,38 +46,38 @@ export default function DeepModeTransition({ onComplete }: Props) {
 
   return (
     <View style={styles.container}>
-      {/* Speech bubble */}
-      {showBubble && (
-        <View style={styles.bubbleWrapper}>
-          <View style={styles.bubble}>
-            <Text style={styles.bubbleText}>Lock in</Text>
+      {/* Mascot area — fixed position, never moves */}
+      <View style={styles.mascotArea}>
+        {/* Speech bubble — absolutely positioned above mascot */}
+        {showBubble && (
+          <View style={styles.bubbleWrapper}>
+            <View style={styles.bubble}>
+              <Text style={styles.bubbleText}>Lock in</Text>
+            </View>
+            <View style={styles.spikeRow}>
+              <View style={styles.spikeOuter} />
+              <View style={styles.spikeInner} />
+            </View>
           </View>
-          <View style={styles.spikeRow}>
-            <View style={styles.spikeOuter} />
-            <View style={styles.spikeInner} />
-          </View>
-        </View>
-      )}
-
-      {/* Static mascot — visible until video starts */}
-      {!videoPlaying && (
+        )}
+        {/* Static first frame — always visible as base layer */}
         <Image
-          source={require("../assets/crack-mascot.png")}
-          style={styles.mascot}
+          source={require("../assets/crack-deep-mode-frame.png")}
+          style={styles.mascotImage}
           resizeMode="contain"
         />
-      )}
 
-      {/* Video — hidden until playing */}
-      <Video
-        source={require("../assets/crack-deep-mode.mp4")}
-        style={[styles.video, !videoPlaying && styles.hidden]}
-        resizeMode={ResizeMode.CONTAIN}
-        shouldPlay
-        isLooping={false}
-        isMuted
-        onPlaybackStatusUpdate={handlePlaybackStatus}
-      />
+        {/* Video — overlays the image seamlessly when playing */}
+        <Video
+          source={require("../assets/crack-deep-mode.mp4")}
+          style={[styles.videoOverlay, !videoPlaying && styles.hidden]}
+          resizeMode={ResizeMode.CONTAIN}
+          shouldPlay
+          isLooping={false}
+          isMuted
+          onPlaybackStatusUpdate={handlePlaybackStatus}
+        />
+      </View>
     </View>
   );
 }
@@ -90,8 +90,11 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   bubbleWrapper: {
+    position: "absolute",
+    top: -60,
+    left: 0,
+    right: 0,
     alignItems: "center",
-    marginBottom: -4,
     zIndex: 10,
   },
   bubble: {
@@ -136,11 +139,16 @@ const styles = StyleSheet.create({
     borderRightColor: "transparent",
     borderTopColor: colors.surface2,
   },
-  mascot: {
+  mascotArea: {
     width: 280,
     height: 280,
   },
-  video: {
+  mascotImage: {
+    width: 280,
+    height: 280,
+    position: "absolute",
+  },
+  videoOverlay: {
     width: 280,
     height: 280,
     position: "absolute",

@@ -1,13 +1,17 @@
 import React, { useEffect, useRef } from "react";
-import { View, Text, StyleSheet, Animated } from "react-native";
+import { View, Text, TouchableOpacity, StyleSheet, Animated } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { colors } from "../lib/theme";
+import { colors, radii } from "../lib/theme";
 
 interface DeepModeOverlayProps {
   deepSecondsLeft: number;
   nextBreakIn: number;
   isOnBreak: boolean;
   breakSecondsLeft: number;
+  isPaused: boolean;
+  onPause: () => void;
+  onResume: () => void;
+  onEndSession: () => void;
 }
 
 function formatTime(seconds: number): string {
@@ -25,6 +29,10 @@ export default function DeepModeOverlay({
   nextBreakIn,
   isOnBreak,
   breakSecondsLeft,
+  isPaused,
+  onPause,
+  onResume,
+  onEndSession,
 }: DeepModeOverlayProps) {
   const glowAnim = useRef(new Animated.Value(8)).current;
 
@@ -40,82 +48,63 @@ export default function DeepModeOverlay({
   }, [glowAnim]);
 
   return (
-    <View style={styles.container} pointerEvents="none">
-      {/* Vignette bars */}
-      <View style={styles.vignetteTop} />
-      <View style={styles.vignetteBottom} />
-      <View style={styles.vignetteLeft} />
-      <View style={styles.vignetteRight} />
-
+    <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
         <Ionicons name="lock-closed" size={16} color={colors.primaryLight} />
         <Text style={styles.headerText}>DEEP MODE</Text>
       </View>
 
-      {/* Main countdown timer — 2:30:00 */}
-      <Animated.Text
-        style={[
-          styles.mainTimer,
-          { shadowRadius: glowAnim },
-        ]}
-      >
-        {formatTime(deepSecondsLeft)}
-      </Animated.Text>
+      {/* Center content */}
+      <View style={styles.center}>
+        <Animated.Text style={[styles.mainTimer, { shadowRadius: glowAnim }]}>
+          {formatTime(deepSecondsLeft)}
+        </Animated.Text>
 
-      {/* Break / Next break timer */}
-      {isOnBreak ? (
-        <View style={styles.subTimerWrap}>
-          <Text style={styles.breakLabel}>BREAK</Text>
-          <Text style={styles.breakTimer}>{formatTime(breakSecondsLeft)}</Text>
+        {isOnBreak ? (
+          <View style={styles.subTimerWrap}>
+            <Text style={styles.breakLabel}>BREAK</Text>
+            <Text style={styles.breakTimer}>{formatTime(breakSecondsLeft)}</Text>
+          </View>
+        ) : (
+          <View style={styles.subTimerWrap}>
+            <Text style={styles.nextBreakLabel}>NEXT BREAK IN</Text>
+            <Text style={styles.nextBreakTimer}>{formatTime(nextBreakIn)}</Text>
+          </View>
+        )}
+      </View>
+
+      {/* Buttons at bottom */}
+      <View style={styles.buttonsWrap}>
+        <View style={styles.buttonRow}>
+          <TouchableOpacity style={styles.pauseButton} onPress={isPaused ? onResume : onPause}>
+            <Text style={styles.pauseButtonText}>{isPaused ? "Resume" : "Pause"}</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.endButton} onPress={onEndSession}>
+            <Text style={styles.endButtonText}>End Session</Text>
+          </TouchableOpacity>
         </View>
-      ) : (
-        <View style={styles.subTimerWrap}>
-          <Text style={styles.nextBreakLabel}>NEXT BREAK IN</Text>
-          <Text style={styles.nextBreakTimer}>{formatTime(nextBreakIn)}</Text>
-        </View>
-      )}
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    ...StyleSheet.absoluteFillObject,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  vignetteTop: {
-    position: "absolute",
-    top: 0, left: 0, right: 0,
-    height: 120,
-    backgroundColor: "rgba(0,0,0,0.6)",
-  },
-  vignetteBottom: {
-    position: "absolute",
-    bottom: 0, left: 0, right: 0,
-    height: 120,
-    backgroundColor: "rgba(0,0,0,0.6)",
-  },
-  vignetteLeft: {
-    position: "absolute",
-    top: 0, bottom: 0, left: 0,
-    width: 40,
-    backgroundColor: "rgba(0,0,0,0.4)",
-  },
-  vignetteRight: {
-    position: "absolute",
-    top: 0, bottom: 0, right: 0,
-    width: 40,
-    backgroundColor: "rgba(0,0,0,0.4)",
+    flex: 1,
+    backgroundColor: "#000000",
   },
   header: {
-    position: "absolute",
-    top: 60,
-    alignSelf: "center",
     flexDirection: "row",
     alignItems: "center",
+    justifyContent: "center",
     gap: 8,
+    paddingTop: 70,
+  },
+  center: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
   },
   headerText: {
     fontSize: 13,
@@ -159,5 +148,37 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     color: colors.text2,
     marginTop: 4,
+  },
+  buttonsWrap: {
+    paddingHorizontal: 20,
+    paddingBottom: 100,
+  },
+  buttonRow: {
+    flexDirection: "row",
+    gap: 12,
+  },
+  pauseButton: {
+    flex: 1,
+    backgroundColor: colors.surface3,
+    borderRadius: radii.md,
+    paddingVertical: 16,
+    alignItems: "center",
+  },
+  pauseButtonText: {
+    color: colors.text1,
+    fontSize: 16,
+    fontWeight: "700",
+  },
+  endButton: {
+    flex: 1,
+    backgroundColor: colors.danger,
+    borderRadius: radii.md,
+    paddingVertical: 16,
+    alignItems: "center",
+  },
+  endButtonText: {
+    color: "#FFF",
+    fontSize: 16,
+    fontWeight: "700",
   },
 });

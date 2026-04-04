@@ -355,7 +355,7 @@ export default function StudyScreen() {
 
           {/* Deep Mode overlay (absoluteFill, renders on top) */}
           {deepPhase === "active" && view === "active" && (
-            <DeepModeOverlay
+            <DeepModeOverlay isPaused={isPaused} onPause={pauseSession} onResume={resumeSession} onEndSession={handleEndSession}
               deepSecondsLeft={deepSecondsLeft}
               nextBreakIn={nextBreakIn}
               isOnBreak={isOnBreak}
