@@ -9,6 +9,7 @@ import {
   ScrollView,
   Animated,
 } from "react-native";
+import { colors } from "../../lib/theme";
 import { useStudyStore } from "../../store/useStudyStore";
 import { useXpStore } from "../../store/useXpStore";
 import { useAuthStore } from "../../store/useAuthStore";
@@ -489,7 +490,7 @@ export default function StudyScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#0f0f23",
+    backgroundColor: colors.bg,
   },
   setupContent: {
     padding: 24,
@@ -498,18 +499,18 @@ const styles = StyleSheet.create({
   screenTitle: {
     fontSize: 28,
     fontWeight: "800",
-    color: "#ffffff",
+    color: colors.text1,
     marginBottom: 28,
   },
   sectionLabel: {
     fontSize: 11,
     fontWeight: "700",
-    color: "#6b7280",
+    color: colors.text3,
     letterSpacing: 1.5,
     marginBottom: 12,
   },
   topicItem: {
-    backgroundColor: "#1e1e3a",
+    backgroundColor: colors.surface2,
     borderRadius: 12,
     padding: 16,
     marginBottom: 8,
@@ -517,19 +518,19 @@ const styles = StyleSheet.create({
     borderColor: "transparent",
   },
   topicItemSelected: {
-    borderColor: "#7c3aed",
+    borderColor: colors.primary,
   },
   topicCourse: {
     fontSize: 11,
     fontWeight: "600",
-    color: "#7c3aed",
+    color: colors.primary,
     marginBottom: 2,
     letterSpacing: 0.5,
   },
   topicName: {
     fontSize: 16,
     fontWeight: "600",
-    color: "#ffffff",
+    color: colors.text1,
   },
   modeRow: {
     flexDirection: "row",
@@ -537,34 +538,34 @@ const styles = StyleSheet.create({
   },
   modeButton: {
     flex: 1,
-    backgroundColor: "#1e1e3a",
+    backgroundColor: colors.surface2,
     borderRadius: 12,
     padding: 16,
     borderWidth: 2,
     borderColor: "transparent",
   },
   modeButtonSelected: {
-    borderColor: "#7c3aed",
-    backgroundColor: "#2d1f5e",
+    borderColor: colors.primary,
+    backgroundColor: colors.surface3,
   },
   modeButtonText: {
     fontSize: 16,
     fontWeight: "700",
-    color: "#9ca3af",
+    color: colors.text2,
     marginBottom: 2,
   },
   modeButtonTextSelected: {
-    color: "#ffffff",
+    color: colors.text1,
   },
   modeDesc: {
     fontSize: 12,
-    color: "#6b7280",
+    color: colors.text3,
   },
   modeDescSelected: {
-    color: "#a78bfa",
+    color: colors.primaryLight,
   },
   startButton: {
-    backgroundColor: "#7c3aed",
+    backgroundColor: colors.primary,
     borderRadius: 16,
     padding: 18,
     alignItems: "center",
@@ -573,7 +574,7 @@ const styles = StyleSheet.create({
   startButtonText: {
     fontSize: 17,
     fontWeight: "700",
-    color: "#ffffff",
+    color: colors.text1,
   },
   activeContent: {
     flex: 1,
@@ -584,20 +585,20 @@ const styles = StyleSheet.create({
   modeLabel: {
     fontSize: 12,
     fontWeight: "700",
-    color: "#7c3aed",
+    color: colors.primary,
     letterSpacing: 2,
     marginBottom: 8,
   },
   topicLabel: {
     fontSize: 18,
     fontWeight: "600",
-    color: "#9ca3af",
+    color: colors.text2,
     marginBottom: 48,
   },
   timerDisplay: {
     fontSize: 72,
     fontWeight: "900",
-    color: "#ffffff",
+    color: colors.text1,
     letterSpacing: 4,
     fontVariant: ["tabular-nums"],
     marginBottom: 56,
@@ -607,7 +608,7 @@ const styles = StyleSheet.create({
     gap: 16,
   },
   pauseButton: {
-    backgroundColor: "#374151",
+    backgroundColor: colors.surface3,
     borderRadius: 14,
     paddingVertical: 16,
     paddingHorizontal: 32,
@@ -615,10 +616,10 @@ const styles = StyleSheet.create({
   pauseButtonText: {
     fontSize: 16,
     fontWeight: "600",
-    color: "#ffffff",
+    color: colors.text1,
   },
   endButton: {
-    backgroundColor: "#dc2626",
+    backgroundColor: colors.danger,
     borderRadius: 14,
     paddingVertical: 16,
     paddingHorizontal: 32,
@@ -626,7 +627,7 @@ const styles = StyleSheet.create({
   endButtonText: {
     fontSize: 16,
     fontWeight: "600",
-    color: "#ffffff",
+    color: colors.text1,
   },
   modalOverlay: {
     flex: 1,
@@ -634,7 +635,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   modalCard: {
-    backgroundColor: "#1e1e3a",
+    backgroundColor: colors.surface2,
     borderRadius: 20,
     margin: 24,
     padding: 32,
@@ -642,7 +643,7 @@ const styles = StyleSheet.create({
   modalTitle: {
     fontSize: 24,
     fontWeight: "800",
-    color: "#ffffff",
+    color: colors.text1,
     textAlign: "center",
     marginBottom: 28,
   },
@@ -654,25 +655,25 @@ const styles = StyleSheet.create({
   },
   statLabel: {
     fontSize: 15,
-    color: "#9ca3af",
+    color: colors.text2,
   },
   statValue: {
     fontSize: 18,
     fontWeight: "700",
-    color: "#ffffff",
+    color: colors.text1,
   },
   xpValue: {
-    color: "#fbbf24",
+    color: colors.gold,
   },
   xpHint: {
     fontSize: 13,
-    color: "#6b7280",
+    color: colors.text3,
     textAlign: "center",
     marginTop: 4,
     marginBottom: 8,
   },
   dismissButton: {
-    backgroundColor: "#7c3aed",
+    backgroundColor: colors.primary,
     borderRadius: 14,
     padding: 16,
     alignItems: "center",
@@ -681,14 +682,14 @@ const styles = StyleSheet.create({
   dismissButtonText: {
     fontSize: 16,
     fontWeight: "700",
-    color: "#ffffff",
+    color: colors.text1,
   },
 
   // ── Quiz trigger button ──────────────────────────────────────────────────
   quizCheckpointButton: {
     marginTop: 28,
     borderWidth: 2,
-    borderColor: "#7c3aed",
+    borderColor: colors.primary,
     borderRadius: 14,
     paddingVertical: 14,
     paddingHorizontal: 32,
@@ -697,23 +698,23 @@ const styles = StyleSheet.create({
   quizCheckpointButtonText: {
     fontSize: 15,
     fontWeight: "700",
-    color: "#a78bfa",
+    color: colors.primaryLight,
     letterSpacing: 0.5,
   },
 
   // ── Quiz modal ───────────────────────────────────────────────────────────
   quizModalCard: {
-    backgroundColor: "#1e1e3a",
+    backgroundColor: colors.surface2,
     borderRadius: 20,
     margin: 24,
     padding: 28,
     borderWidth: 1,
-    borderColor: "#7c3aed",
+    borderColor: colors.primary,
   },
   quizLabel: {
     fontSize: 11,
     fontWeight: "700",
-    color: "#7c3aed",
+    color: colors.primary,
     letterSpacing: 2,
     textAlign: "center",
     marginBottom: 16,
@@ -721,7 +722,7 @@ const styles = StyleSheet.create({
   quizQuestion: {
     fontSize: 17,
     fontWeight: "700",
-    color: "#ffffff",
+    color: colors.text1,
     textAlign: "center",
     lineHeight: 24,
     marginBottom: 24,
@@ -730,24 +731,24 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   quizOptionButton: {
-    backgroundColor: "#2d2d4e",
+    backgroundColor: colors.surface3,
     borderRadius: 12,
     padding: 14,
     borderWidth: 1,
-    borderColor: "#4b5563",
+    borderColor: colors.text3,
   },
   quizOptionText: {
     fontSize: 15,
-    color: "#d1d5db",
+    color: colors.text1,
     textAlign: "center",
   },
   quizOptionCorrect: {
-    backgroundColor: "#065f46",
-    borderColor: "#10b981",
+    backgroundColor: "rgba(78,255,180,0.2)",
+    borderColor: colors.success,
   },
   quizOptionWrong: {
-    backgroundColor: "#7f1d1d",
-    borderColor: "#ef4444",
+    backgroundColor: "rgba(255,87,87,0.2)",
+    borderColor: colors.danger,
   },
   quizOptionDimmed: {
     opacity: 0.4,
@@ -755,20 +756,20 @@ const styles = StyleSheet.create({
   quizResultTitle: {
     fontSize: 22,
     fontWeight: "800",
-    color: "#10b981",
+    color: colors.success,
     textAlign: "center",
     marginBottom: 8,
   },
   quizXpToast: {
     fontSize: 42,
     fontWeight: "900",
-    color: "#fbbf24",
+    color: colors.gold,
     textAlign: "center",
     marginBottom: 8,
   },
   quizResultSub: {
     fontSize: 15,
-    color: "#9ca3af",
+    color: colors.text2,
     textAlign: "center",
     marginBottom: 24,
     lineHeight: 22,
@@ -776,25 +777,25 @@ const styles = StyleSheet.create({
   quizResultWrongTitle: {
     fontSize: 22,
     fontWeight: "800",
-    color: "#f87171",
+    color: colors.danger,
     textAlign: "center",
     marginBottom: 12,
   },
   quizCorrectAnswerText: {
-    color: "#10b981",
+    color: colors.success,
     fontWeight: "700",
   },
   quizExamCountdown: {
     fontSize: 14,
     fontWeight: "700",
-    color: "#fbbf24",
+    color: colors.gold,
     textAlign: "center",
     marginTop: 16,
     marginBottom: 4,
   },
   quizEncouragement: {
     fontSize: 13,
-    color: "#6b7280",
+    color: colors.text3,
     textAlign: "center",
     marginBottom: 24,
   },
