@@ -19,6 +19,7 @@ import {
   getExamCountdown,
   type QuizQuestion,
 } from "../../lib/questionBank";
+import { ModeToggle } from "../../components/ModeToggle";
 import DeepModeTransition from "../../components/DeepModeTransition";
 import DeepModeOverlay from "../../components/DeepModeOverlay";
 import ExitGateModal from "../../components/ExitGateModal";
@@ -289,30 +290,7 @@ export default function StudyScreen() {
           </View>
 
           <Text style={[styles.sectionLabel, { marginTop: 24 }]}>MODE</Text>
-          <View style={styles.modeRow}>
-            <TouchableOpacity
-              style={[styles.modeButton, selectedMode === "focus" && styles.modeButtonSelected]}
-              onPress={() => setSelectedMode("focus")}
-            >
-              <Text style={[styles.modeButtonText, selectedMode === "focus" && styles.modeButtonTextSelected]}>
-                Focus
-              </Text>
-              <Text style={[styles.modeDesc, selectedMode === "focus" && styles.modeDescSelected]}>
-                Standard session
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.modeButton, selectedMode === "deep" && styles.modeButtonSelected]}
-              onPress={() => setSelectedMode("deep")}
-            >
-              <Text style={[styles.modeButtonText, selectedMode === "deep" && styles.modeButtonTextSelected]}>
-                Deep
-              </Text>
-              <Text style={[styles.modeDesc, selectedMode === "deep" && styles.modeDescSelected]}>
-                Deep work
-              </Text>
-            </TouchableOpacity>
-          </View>
+          <ModeToggle value={selectedMode} onChange={setSelectedMode} />
 
           <TouchableOpacity style={styles.startButton} onPress={handleStartSession}>
             <Text style={styles.startButtonText}>Start Session</Text>
@@ -531,38 +509,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "600",
     color: colors.text1,
-  },
-  modeRow: {
-    flexDirection: "row",
-    gap: 12,
-  },
-  modeButton: {
-    flex: 1,
-    backgroundColor: colors.surface2,
-    borderRadius: 12,
-    padding: 16,
-    borderWidth: 2,
-    borderColor: "transparent",
-  },
-  modeButtonSelected: {
-    borderColor: colors.primary,
-    backgroundColor: colors.surface3,
-  },
-  modeButtonText: {
-    fontSize: 16,
-    fontWeight: "700",
-    color: colors.text2,
-    marginBottom: 2,
-  },
-  modeButtonTextSelected: {
-    color: colors.text1,
-  },
-  modeDesc: {
-    fontSize: 12,
-    color: colors.text3,
-  },
-  modeDescSelected: {
-    color: colors.primaryLight,
   },
   startButton: {
     backgroundColor: colors.primary,
