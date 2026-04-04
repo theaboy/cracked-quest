@@ -2,22 +2,34 @@ import { View, Text, StyleSheet, ScrollView } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { colors } from "../../lib/theme";
 import { getCurrentTier } from "../../lib/xpUtils";
+import { useAuthStore } from "../../store/useAuthStore";
 import { useXpStore } from "../../store/useXpStore";
 import { useXpAnimation } from "../../hooks/useXpAnimation";
 import { XpProgressBar } from "../../components/XpProgressBar";
 import { XpAnimatedCounter } from "../../components/XpAnimatedCounter";
 import { RankBadge } from "../../components/RankBadge";
+import { ProfileAvatar } from "../../components/ProfileAvatar";
+import { StreakCard } from "../../components/StreakCard";
+import { LeaderboardList } from "../../components/LeaderboardList";
 
 export default function ProfileScreen() {
+  const user = useAuthStore((s) => s.user);
   const xpTotal = useXpStore((s) => s.xpTotal);
   const tier = getCurrentTier(xpTotal);
   const { animatedXp, displayXp } = useXpAnimation();
 
+  const username = user?.username ?? "DemoStudent";
+
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={styles.content}>
+        {/* Avatar */}
+        <View style={styles.avatarContainer}>
+          <ProfileAvatar size={80} />
+        </View>
+
         {/* Username */}
-        <Text style={styles.username}>DemoStudent</Text>
+        <Text style={styles.username}>{username}</Text>
         <Text style={styles.university}>McGill University</Text>
 
         {/* Shield badge */}
@@ -38,9 +50,14 @@ export default function ProfileScreen() {
         {/* Divider */}
         <View style={styles.divider} />
 
-        {/* Placeholder for leaderboard/stats — issue #5 */}
-        <View style={styles.placeholder}>
-          <Text style={styles.placeholderText}>Leaderboard & Stats (Issue #5)</Text>
+        {/* Streak Card */}
+        <View style={styles.streakContainer}>
+          <StreakCard />
+        </View>
+
+        {/* Leaderboard */}
+        <View style={styles.leaderboardContainer}>
+          <LeaderboardList currentUsername={username} />
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -55,12 +72,16 @@ const styles = StyleSheet.create({
   content: {
     paddingBottom: 48,
   },
+  avatarContainer: {
+    alignItems: "center",
+    marginTop: 24,
+  },
   username: {
     color: colors.text1,
     fontWeight: "800",
     fontSize: 22,
     textAlign: "center",
-    marginTop: 24,
+    marginTop: 10,
     marginBottom: 4,
   },
   university: {
@@ -85,13 +106,12 @@ const styles = StyleSheet.create({
     marginHorizontal: 20,
     marginTop: 16,
   },
-  placeholder: {
-    alignItems: "center",
-    justifyContent: "center",
-    height: 100,
+  streakContainer: {
+    marginTop: 16,
+    marginHorizontal: 20,
   },
-  placeholderText: {
-    color: colors.text3,
-    fontSize: 14,
+  leaderboardContainer: {
+    marginTop: 16,
+    paddingHorizontal: 20,
   },
 });
