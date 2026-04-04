@@ -18,6 +18,9 @@ import {
   getExamCountdown,
   type QuizQuestion,
 } from "../../lib/questionBank";
+import DeepModeTransition from "../../components/DeepModeTransition";
+import DeepModeOverlay from "../../components/DeepModeOverlay";
+import ExitGateModal from "../../components/ExitGateModal";
 
 const MOCK_TOPICS = [
   { id: "t1", name: "Linear Regression", course: "COMP 551" },
@@ -39,6 +42,10 @@ export default function StudyScreen() {
   const [summaryXp, setSummaryXp] = useState(0);
   const [summaryDuration, setSummaryDuration] = useState(0);
 
+  // --- Deep Mode state ---
+  const [deepPhase, setDeepPhase] = useState<null | "transition" | "active">(null);
+  const [exitGateVisible, setExitGateVisible] = useState(false);
+
   // --- Quiz state ---
   const [quizVisible, setQuizVisible] = useState(false);
   const [quizPhase, setQuizPhase] = useState<"question" | "correct" | "wrong">("question");
@@ -47,8 +54,12 @@ export default function StudyScreen() {
   const xpToastScale = useRef(new Animated.Value(0.5)).current;
   const answerTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const { isStudying, isPaused, elapsedSeconds, startSession, pauseSession, resumeSession, tick } =
-    useStudyStore();
+  const {
+    isStudying, isPaused, elapsedSeconds, mode,
+    isOnBreak, breakSecondsLeft,
+    startSession, pauseSession, resumeSession, tick,
+    startBreak, tickBreak, endBreak,
+  } = useStudyStore();
 
   useEffect(() => {
     if (!isStudying || isPaused) return;
@@ -68,14 +79,45 @@ export default function StudyScreen() {
     }
   }, [quizPhase]);
 
+  // --- Break timer (Deep Mode) ---
+  useEffect(() => {
+    if (!isOnBreak) return;
+    const id = setInterval(() => tickBreak(), 1000);
+    return () => clearInterval(id);
+  }, [isOnBreak, tickBreak]);
+
+  // When break ends naturally, resume session
+  useEffect(() => {
+    if (!isOnBreak && breakSecondsLeft === 0 && isStudying && isPaused && mode === "deep") {
+      endBreak();
+    }
+  }, [isOnBreak, breakSecondsLeft, isStudying, isPaused, mode, endBreak]);
+
   function handleStartSession() {
+    if (selectedMode === "deep") {
+      setDeepPhase("transition");
+      setView("active");
+      return;
+    }
     startSession(selectedMode, selectedTopicId);
     setView("active");
   }
 
+  function handleTransitionComplete() {
+    setDeepPhase("active");
+    startSession("deep", selectedTopicId);
+  }
+
   async function handleEndSession() {
-    const { elapsedSeconds: elapsed, endSession, currentTopicId, mode } =
+    const { elapsedSeconds: elapsed, endSession, currentTopicId, mode: currentMode } =
       useStudyStore.getState();
+
+    // Deep Mode: show exit gate instead of ending directly
+    if (currentMode === "deep") {
+      setExitGateVisible(true);
+      return;
+    }
+
     const userId = useAuthStore.getState().user?.id ?? "mock-user-id";
     endSession();
 
@@ -87,7 +129,7 @@ export default function StudyScreen() {
         body: {
           userId,
           topicId: currentTopicId ?? "unknown",
-          mode: mode ?? "focus",
+          mode: currentMode ?? "focus",
           durationSeconds: elapsed,
         },
       }) ?? {};
@@ -106,9 +148,56 @@ export default function StudyScreen() {
 
   function handleDismissSummary() {
     useStudyStore.getState().resetSession();
+    setDeepPhase(null);
     setView("setup");
     setSummaryXp(0);
     setSummaryDuration(0);
+  }
+
+  // --- Exit Gate handlers (Deep Mode) ---
+  function handleExitStay() {
+    setExitGateVisible(false);
+    resumeSession();
+  }
+
+  function handleExitQuizCorrect() {
+    setExitGateVisible(false);
+    startBreak();
+  }
+
+  async function handleExitPenalty() {
+    setExitGateVisible(false);
+    useXpStore.getState().addXp(-20);
+
+    const { elapsedSeconds: elapsed, endSession, currentTopicId } =
+      useStudyStore.getState();
+    const userId = useAuthStore.getState().user?.id ?? "mock-user-id";
+    endSession();
+
+    setSummaryDuration(elapsed);
+    setDeepPhase(null);
+    setView("summary");
+
+    try {
+      const { data, error } = await supabase?.functions.invoke("award_xp", {
+        body: {
+          userId,
+          topicId: currentTopicId ?? "unknown",
+          mode: "deep",
+          durationSeconds: elapsed,
+        },
+      }) ?? {};
+
+      const xpEarned = data?.xpEarned ?? 0;
+      setSummaryXp(xpEarned);
+      if (data?.newXpTotal != null) {
+        useXpStore.getState().setXp(data.newXpTotal);
+      }
+      if (error) console.warn("award_xp error:", error);
+    } catch (err) {
+      console.warn("award_xp call failed (expected in dev):", err);
+      setSummaryXp(0);
+    }
   }
 
   function handleOpenQuiz() {
@@ -205,8 +294,13 @@ export default function StudyScreen() {
         </ScrollView>
       )}
 
+      {/* ── DEEP MODE TRANSITION ── */}
+      {view === "active" && deepPhase === "transition" && (
+        <DeepModeTransition onComplete={handleTransitionComplete} />
+      )}
+
       {/* ── ACTIVE TIMER VIEW ── */}
-      {(view === "active" || view === "summary") && (
+      {(view === "active" || view === "summary") && deepPhase !== "transition" && (
         <View style={styles.activeContent}>
           <Text style={styles.modeLabel}>
             {selectedMode.toUpperCase()} MODE
@@ -232,6 +326,15 @@ export default function StudyScreen() {
             <TouchableOpacity style={styles.quizCheckpointButton} onPress={handleOpenQuiz}>
               <Text style={styles.quizCheckpointButtonText}>Quiz Checkpoint</Text>
             </TouchableOpacity>
+          )}
+
+          {/* Deep Mode overlay (absoluteFill, renders on top) */}
+          {deepPhase === "active" && view === "active" && (
+            <DeepModeOverlay
+              elapsedSeconds={elapsedSeconds}
+              isOnBreak={isOnBreak}
+              breakSecondsLeft={breakSecondsLeft}
+            />
           )}
         </View>
       )}
@@ -339,6 +442,16 @@ export default function StudyScreen() {
           </View>
         </View>
       </Modal>
+
+      {/* ── EXIT GATE MODAL (Deep Mode) ── */}
+      <ExitGateModal
+        visible={exitGateVisible}
+        topicId={useStudyStore.getState().currentTopicId ?? "unknown"}
+        daysUntilExam={null}
+        onStay={handleExitStay}
+        onQuizCorrect={handleExitQuizCorrect}
+        onPenaltyExit={handleExitPenalty}
+      />
     </SafeAreaView>
   );
 }
