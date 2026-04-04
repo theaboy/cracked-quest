@@ -7,6 +7,7 @@ import {
   configureNotificationHandler,
   scheduleDailyReminders,
   scheduleExamCountdowns,
+  scheduleExamEveNotifications,
 } from "../lib/notifications";
 
 // Configure foreground notification behavior at module load time
@@ -51,7 +52,10 @@ export default function RootLayout() {
       await scheduleDailyReminders();
       // Read courses fresh to avoid stale closure; skip if not yet loaded
       const courses = useCourseStore.getState().courses;
-      if (courses.length > 0) await scheduleExamCountdowns(courses);
+      if (courses.length > 0) {
+        await scheduleExamCountdowns(courses);
+        await scheduleExamEveNotifications(courses);
+      }
     };
 
     init().catch((err) => console.warn("[notifications] init failed:", err));
