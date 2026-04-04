@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import { View, Text, StyleSheet, useWindowDimensions } from "react-native";
+import { View, Text, TouchableOpacity, StyleSheet, useWindowDimensions } from "react-native";
 import Svg, { Line } from "react-native-svg";
 import Animated, {
   useSharedValue,
@@ -17,6 +17,7 @@ const AnimatedLine = Animated.createAnimatedComponent(Line);
 interface ZigzagPathProps {
   topics: Topic[];
   exams: Exam[];
+  onTopicPress?: (topicId: string) => void;
 }
 
 const NODE_SIZE = 28;
@@ -224,7 +225,7 @@ function BeamConnector({
   );
 }
 
-export default function ZigzagPath({ topics, exams }: ZigzagPathProps) {
+export default function ZigzagPath({ topics, exams, onTopicPress }: ZigzagPathProps) {
   const { width: screenWidth } = useWindowDimensions();
   const hasUndefeatedExam = exams.some((e) => !e.defeated);
 
@@ -305,8 +306,10 @@ export default function ZigzagPath({ topics, exams }: ZigzagPathProps) {
         const isLocked = topic.status === "locked";
 
         return (
-          <View
+          <TouchableOpacity
             key={topic.id}
+            activeOpacity={isLocked ? 1 : 0.7}
+            onPress={() => !isLocked && onTopicPress?.(topic.id)}
             style={[
               styles.node,
               {
@@ -326,7 +329,7 @@ export default function ZigzagPath({ topics, exams }: ZigzagPathProps) {
                 {i + 1}
               </Text>
             )}
-          </View>
+          </TouchableOpacity>
         );
       })}
 
