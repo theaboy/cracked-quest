@@ -73,10 +73,10 @@ const styles = StyleSheet.create({
   row: {
     flexDirection: "row",
     alignItems: "center",
-    padding: 12,
-    paddingHorizontal: 14,
-    borderRadius: 10,
-    marginBottom: 6,
+    padding: 16,
+    paddingHorizontal: 18,
+    borderRadius: 12,
+    marginBottom: 8,
   },
   rowDefault: {
     backgroundColor: colors.surface,
