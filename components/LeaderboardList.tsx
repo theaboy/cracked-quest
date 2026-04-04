@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet } from "react-native";
+import { View, Text, ScrollView, StyleSheet } from "react-native";
 import { colors } from "../lib/theme";
 import { DEMO_LEADERBOARD } from "../lib/mockData";
 import { LeaderboardRow } from "./LeaderboardRow";
@@ -21,16 +21,18 @@ export function LeaderboardList({ currentUsername }: LeaderboardListProps) {
     <View>
       <Text style={styles.sectionLabel}>LEADERBOARD</Text>
 
-      {sorted.map((entry, index) => (
-        <LeaderboardRow
-          key={entry.username}
-          rank={index + 1}
-          username={entry.username}
-          xp={entry.xp}
-          tier={entry.tier}
-          isCurrentUser={entry.username === currentUsername}
-        />
-      ))}
+      <ScrollView style={styles.scrollArea} nestedScrollEnabled>
+        {sorted.map((entry, index) => (
+          <LeaderboardRow
+            key={entry.username}
+            rank={index + 1}
+            username={entry.username}
+            xp={entry.xp}
+            tier={entry.tier}
+            isCurrentUser={entry.username === currentUsername}
+          />
+        ))}
+      </ScrollView>
 
       {currentUserEntry && currentUserRank && (
         <View style={styles.pinnedContainer}>
@@ -55,6 +57,9 @@ const styles = StyleSheet.create({
     color: colors.text3,
     letterSpacing: 1.5,
     marginBottom: 10,
+  },
+  scrollArea: {
+    maxHeight: 340,
   },
   pinnedContainer: {
     marginTop: 8,
