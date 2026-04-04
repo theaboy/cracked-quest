@@ -46,8 +46,8 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   flameIcon: {
-    width: 28,
-    height: 28,
+    width: 36,
+    height: 36,
   },
   streakCount: {
     color: colors.gold,
