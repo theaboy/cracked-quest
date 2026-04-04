@@ -6,14 +6,14 @@ import { colors } from "../../lib/theme";
 
 interface GradientBorderProps {
   children: React.ReactNode;
-  gradientColors?: string[];
+  gradientColors?: readonly [string, string, ...string[]];
   borderWidth?: number;
   borderRadius?: number;
 }
 
 export function GradientBorder({
   children,
-  gradientColors = [colors.gold, colors.primary, colors.primaryDark],
+  gradientColors = [colors.gold, colors.primary, colors.primaryDark] as const,
   borderWidth = 2,
   borderRadius = 12,
 }: GradientBorderProps) {
