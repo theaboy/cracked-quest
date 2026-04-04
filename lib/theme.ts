@@ -24,6 +24,12 @@ export const colors = {
 
   danger: "#FF5757",
   success: "#4EFFB4",
+  tierStudent: "#9896AA",
+  tierGrinder: "#9B6DFF",
+  tierScholar: "#4EFFB4",
+  tierVeteran: "#F5C842",
+  tierElite: "#FF5757",
+  tierLegend: "#F5C842",
 } as const;
 
 export const spacing = {

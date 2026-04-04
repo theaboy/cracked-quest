@@ -1,3 +1,5 @@
+import { colors } from "./theme";
+
 export type RankTier = "Student" | "Grinder" | "Scholar" | "Veteran" | "Elite" | "Legend";
 
 export interface TierInfo {
@@ -8,12 +10,12 @@ export interface TierInfo {
 }
 
 export const RANK_TIERS: TierInfo[] = [
-  { name: "Student",  threshold: 0,     color: "#9896AA", icon: "🎓" },
-  { name: "Grinder",  threshold: 500,   color: "#9B6DFF", icon: "⚔" },
-  { name: "Scholar",  threshold: 1500,  color: "#4EFFB4", icon: "📚" },
-  { name: "Veteran",  threshold: 3500,  color: "#F5C842", icon: "🛡" },
-  { name: "Elite",    threshold: 7000,  color: "#FF5757", icon: "👑" },
-  { name: "Legend",    threshold: 12000, color: "#F5C842", icon: "⭐" },
+  { name: "Student",  threshold: 0,     color: colors.tierStudent, icon: "🎓" },
+  { name: "Grinder",  threshold: 500,   color: colors.tierGrinder, icon: "⚔" },
+  { name: "Scholar",  threshold: 1500,  color: colors.tierScholar, icon: "📚" },
+  { name: "Veteran",  threshold: 3500,  color: colors.tierVeteran, icon: "🛡" },
+  { name: "Elite",    threshold: 7000,  color: colors.tierElite, icon: "👑" },
+  { name: "Legend",    threshold: 12000, color: colors.tierLegend, icon: "⭐" },
 ];
 
 export function getCurrentTier(xp: number): TierInfo {
