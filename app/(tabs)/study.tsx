@@ -79,6 +79,19 @@ export default function StudyScreen() {
     const userId = useAuthStore.getState().user?.id ?? "mock-user-id";
     endSession();
 
+    // ── Streak update ─────────────────────────────────────────────────────────
+    const today     = new Date().toISOString().split("T")[0];
+    const yesterday = new Date(Date.now() - 86_400_000).toISOString().split("T")[0];
+    const { lastStudyDate, streakDays, setStreak, setLastStudyDate } =
+      useXpStore.getState();
+
+    if (lastStudyDate !== today) {
+      const newStreak = lastStudyDate === yesterday ? streakDays + 1 : 1;
+      setStreak(newStreak);
+      setLastStudyDate(today);
+    }
+    // ── End streak update ─────────────────────────────────────────────────────
+
     setSummaryDuration(elapsed);
     setView("summary");
 
