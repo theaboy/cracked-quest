@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
+import { useRouter } from "expo-router";
 import { colors, radii } from "../lib/theme";
 import type { Course } from "../store/useCourseStore";
 import ZigzagPath from "./ZigzagPath";
@@ -11,6 +12,10 @@ interface CourseCardProps {
 
 export default function CourseCard({ course }: CourseCardProps) {
   const [flashcardVisible, setFlashcardVisible] = useState(false);
+  const router = useRouter();
+  const handleTopicPress = (topicId: string) => {
+    router.push(`/topic/${course.id}/${topicId}`);
+  };
 
   // Current topic: first in_progress, then first locked, else "All complete"
   const currentTopic =
@@ -93,7 +98,7 @@ export default function CourseCard({ course }: CourseCardProps) {
           </View>
 
           {/* Zigzag Path */}
-          <ZigzagPath topics={course.topics} exams={course.exams} />
+          <ZigzagPath topics={course.topics} exams={course.exams} onTopicPress={handleTopicPress} />
 
           {/* Readiness bar */}
           <View style={styles.readinessContainer}>
