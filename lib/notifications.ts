@@ -11,9 +11,10 @@ const CHANNEL_STUDY  = "study-reminders";
 
 // ─── Notification identifiers ─────────────────────────────────────────────────
 
-const ID_PREFIX_EXAM  = "exam-countdown-";
-const ID_DAILY_STREAK = "daily-streak-risk";
-const ID_DAILY_STUDY  = "daily-study-reminder";
+const ID_PREFIX_EXAM     = "exam-countdown-";
+const ID_PREFIX_EXAM_EVE = "exam-eve-";
+const ID_DAILY_STREAK    = "daily-streak-risk";
+const ID_DAILY_STUDY     = "daily-study-reminder";
 
 // ─── Foreground handler (call at module level in _layout.tsx) ─────────────────
 
@@ -111,6 +112,46 @@ export async function scheduleExamCountdowns(courses: Course[]): Promise<void> {
           },
         });
       }
+    }
+  }
+}
+
+// ─── Exam-eve wellness notifications ─────────────────────────────────────────
+
+export async function scheduleExamEveNotifications(courses: Course[]): Promise<void> {
+  await setupAndroidChannels();
+
+  const scheduled = await Notifications.getAllScheduledNotificationsAsync();
+  await Promise.all(
+    scheduled
+      .filter((n) => n.identifier.startsWith(ID_PREFIX_EXAM_EVE))
+      .map((n) => Notifications.cancelScheduledNotificationAsync(n.identifier))
+  );
+
+  const now = Date.now();
+
+  for (const course of courses) {
+    for (const exam of course.exams) {
+      if (exam.defeated) continue;
+
+      const triggerDate = new Date(new Date(exam.examDate).getTime() - 86_400_000);
+      triggerDate.setHours(21, 0, 0, 0); // 9 PM local the night before
+
+      if (triggerDate.getTime() <= now) continue;
+
+      await Notifications.scheduleNotificationAsync({
+        identifier: `${ID_PREFIX_EXAM_EVE}${exam.id}`,
+        content: {
+          title: "Big day tomorrow. 🎓",
+          body: `${course.code} ${exam.name} is tomorrow. Sleep > cramming. You've got this.`,
+          data: { examId: exam.id, courseId: course.id },
+        },
+        trigger: {
+          type: SchedulableTriggerInputTypes.DATE,
+          date: triggerDate,
+          channelId: CHANNEL_EXAMS,
+        },
+      });
     }
   }
 }
