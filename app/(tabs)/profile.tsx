@@ -43,7 +43,7 @@ export default function ProfileScreen() {
         <View style={styles.statRow}>
           <Text style={styles.statLabel}>Streak</Text>
           <Text style={styles.statValue}>
-            {streakDays > 0 ? `\uD83D\uDD25 ${streakDays} day streak` : "No streak yet"}
+            {streakDays > 0 ? `🔥 ${streakDays} day streak` : "No streak yet"}
           </Text>
         </View>
 
@@ -93,6 +93,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.border,
     marginHorizontal: 20,
     marginTop: 16,
+    marginBottom: 8,
   },
   placeholder: {
     alignItems: "center",

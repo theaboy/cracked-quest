@@ -77,11 +77,21 @@ export default function StudyScreen() {
     const { elapsedSeconds: elapsed, endSession, currentTopicId, mode } =
       useStudyStore.getState();
     const userId = useAuthStore.getState().user?.id ?? "mock-user-id";
+    // endSession() clears store state — all reads from useStudyStore happen
+    // above via destructuring, so elapsed/currentTopicId/mode are safe to use below.
     endSession();
 
     // ── Streak update ─────────────────────────────────────────────────────────
-    const today     = new Date().toISOString().split("T")[0];
-    const yesterday = new Date(Date.now() - 86_400_000).toISOString().split("T")[0];
+    // Use local calendar date (not UTC) so midnight sessions in negative-offset
+    // timezones (e.g. Montreal UTC-5) don't roll to the next UTC day.
+    const localDate = (d: Date) => {
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, "0");
+      const day = String(d.getDate()).padStart(2, "0");
+      return `${y}-${m}-${day}`;
+    };
+    const today     = localDate(new Date());
+    const yesterday = localDate(new Date(Date.now() - 86_400_000));
     const { lastStudyDate, streakDays, setStreak, setLastStudyDate } =
       useXpStore.getState();
 
