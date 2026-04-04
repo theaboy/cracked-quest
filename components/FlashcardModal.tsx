@@ -75,18 +75,27 @@ export default function FlashcardModal({
 
               <Text style={styles.question}>{question.question}</Text>
 
-              <View style={styles.answerArea}>
-                {!revealed && <Text style={styles.tapHint}>TAP TO REVEAL</Text>}
-                <TouchableOpacity
-                  activeOpacity={0.8}
-                  onPress={() => setRevealed(true)}
-                  disabled={revealed}
-                >
-                  <Text style={[styles.answer, { opacity: revealed ? 1 : 0.15 }]}>
+              <TouchableOpacity
+                style={styles.answerArea}
+                activeOpacity={0.8}
+                onPress={() => setRevealed(true)}
+                disabled={revealed}
+              >
+                {revealed ? (
+                  <Text style={styles.answerRevealed}>
                     {question.options[question.correctIndex]}
                   </Text>
-                </TouchableOpacity>
-              </View>
+                ) : (
+                  <View style={styles.hiddenAnswer}>
+                    <Text style={styles.tapHint}>TAP TO REVEAL</Text>
+                    <View style={styles.hiddenLines}>
+                      <View style={styles.hiddenLine} />
+                      <View style={[styles.hiddenLine, { width: "70%" }]} />
+                      <View style={[styles.hiddenLine, { width: "85%" }]} />
+                    </View>
+                  </View>
+                )}
+              </TouchableOpacity>
             </>
           ) : (
             <View style={styles.emptyState}>
@@ -133,22 +142,43 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: colors.text1,
     fontWeight: "600",
+    lineHeight: 24,
     marginBottom: 24,
   },
   answerArea: {
+    backgroundColor: colors.surface3,
+    borderRadius: 12,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: colors.border,
     marginBottom: 24,
   },
+  hiddenAnswer: {
+    alignItems: "center",
+  },
   tapHint: {
-    fontSize: 10,
+    fontSize: 11,
     textTransform: "uppercase",
     color: colors.text3,
     letterSpacing: 1,
-    marginBottom: 8,
-  },
-  answer: {
-    fontSize: 16,
-    color: colors.text1,
     fontWeight: "600",
+    marginBottom: 12,
+  },
+  hiddenLines: {
+    width: "100%",
+    gap: 8,
+  },
+  hiddenLine: {
+    height: 8,
+    backgroundColor: colors.border,
+    borderRadius: 4,
+    width: "100%",
+  },
+  answerRevealed: {
+    fontSize: 15,
+    color: colors.success,
+    fontWeight: "600",
+    lineHeight: 22,
   },
   emptyState: {
     alignItems: "center",

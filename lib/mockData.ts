@@ -66,4 +66,11 @@ export const DEMO_LEADERBOARD = [
   { username: "DemoStudent", xp: 1240, tier: "Grinder" },
   { username: "JakeW", xp: 1100, tier: "Grinder" },
   { username: "EmmaL", xp: 890, tier: "Grinder" },
+  { username: "LiamT", xp: 820, tier: "Grinder" },
+  { username: "MayaR", xp: 740, tier: "Grinder" },
+  { username: "NoahK", xp: 610, tier: "Grinder" },
+  { username: "OliviaP", xp: 530, tier: "Grinder" },
+  { username: "EthanB", xp: 450, tier: "Student" },
+  { username: "SophieW", xp: 380, tier: "Student" },
+  { username: "DanielF", xp: 290, tier: "Student" },
 ];
