@@ -20,6 +20,7 @@ import ChatBubble from "../../components/ChatBubble";
 import TypingIndicator from "../../components/TypingIndicator";
 import OptionCard from "../../components/OptionCard";
 import { useBubbleSequence } from "../../hooks/useBubbleSequence";
+import { requestPermissions } from "../../lib/notifications";
 
 interface OnboardingData {
   display_name: string;
@@ -214,7 +215,7 @@ export default function OnboardingScreen() {
     advance();
   };
 
-  const handleFinish = () => {
+  const handleFinish = async () => {
     const storeCourses: Course[] = data.courses.map((c, ci) => ({
       id: `course-${Date.now()}-${ci}`,
       name: c.course_name,
@@ -232,6 +233,8 @@ export default function OnboardingScreen() {
     }));
     setCourses(storeCourses);
     setXp(50);
+    // Request notification permissions — user just finished onboarding, optimal moment
+    await requestPermissions().catch(() => {});
     // Set user LAST — this triggers the root layout guard to navigate to /(tabs)
     setUser({ id: `user-${Date.now()}`, email: "", username: data.display_name });
   };
@@ -279,7 +282,7 @@ export default function OnboardingScreen() {
       case 5: handleScreen5(); break;
       case 6: handleScreen6(); break;
       case 8: handleScreen8(); break;
-      case 10: handleFinish(); break;
+      case 10: void handleFinish(); break;
     }
   };
 

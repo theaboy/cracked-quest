@@ -82,6 +82,7 @@ export default function StudyScreen() {
     setSummaryDuration(elapsed);
     setView("summary");
 
+
     try {
       const { data, error } = await supabase?.functions.invoke("award_xp", {
         body: {
