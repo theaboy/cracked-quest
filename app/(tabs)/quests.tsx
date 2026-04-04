@@ -12,6 +12,7 @@ import {
 } from "react-native";
 import { useQuestStore, type Quest } from "../../store/useQuestStore";
 import { useXpStore } from "../../store/useXpStore";
+import { colors } from "../../lib/theme";
 
 function generateId(): string {
   return `q-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
@@ -183,7 +184,7 @@ export default function QuestsScreen() {
               value={formTitle}
               onChangeText={setFormTitle}
               placeholder="e.g. COMP 251 Problem Set 4"
-              placeholderTextColor="#6b7280"
+              placeholderTextColor={colors.text3}
               returnKeyType="next"
             />
 
@@ -193,7 +194,7 @@ export default function QuestsScreen() {
               value={formDesc}
               onChangeText={setFormDesc}
               placeholder="Brief description (optional)"
-              placeholderTextColor="#6b7280"
+              placeholderTextColor={colors.text3}
               multiline
               numberOfLines={3}
               returnKeyType="next"
@@ -205,7 +206,7 @@ export default function QuestsScreen() {
               value={formDue}
               onChangeText={setFormDue}
               placeholder="e.g. Apr 20, 2026"
-              placeholderTextColor="#6b7280"
+              placeholderTextColor={colors.text3}
               returnKeyType="next"
             />
 
@@ -215,7 +216,7 @@ export default function QuestsScreen() {
               value={formCourse}
               onChangeText={setFormCourse}
               placeholder="e.g. COMP 251"
-              placeholderTextColor="#6b7280"
+              placeholderTextColor={colors.text3}
               returnKeyType="done"
               onSubmitEditing={handleAddQuest}
             />
@@ -240,53 +241,53 @@ export default function QuestsScreen() {
 }
 
 const styles = StyleSheet.create({
-  container:            { flex: 1, backgroundColor: "#0f0f23" },
+  container:            { flex: 1, backgroundColor: colors.bg },
   scrollContent:        { padding: 20, paddingBottom: 48 },
 
   headerRow:            { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 24 },
-  screenTitle:          { fontSize: 26, fontWeight: "800", color: "#ffffff" },
-  addButton:            { backgroundColor: "#7c3aed", borderRadius: 10, paddingVertical: 8, paddingHorizontal: 16 },
-  addButtonText:        { fontSize: 14, fontWeight: "700", color: "#ffffff" },
+  screenTitle:          { fontSize: 26, fontWeight: "800", color: colors.text1 },
+  addButton:            { backgroundColor: colors.primary, borderRadius: 10, paddingVertical: 8, paddingHorizontal: 16 },
+  addButtonText:        { fontSize: 14, fontWeight: "700", color: colors.text1 },
 
   emptyState:           { alignItems: "center", marginTop: 64 },
-  emptyStateText:       { fontSize: 18, fontWeight: "700", color: "#9ca3af" },
-  emptyStateSubtext:    { fontSize: 14, color: "#6b7280", marginTop: 8, textAlign: "center" },
+  emptyStateText:       { fontSize: 18, fontWeight: "700", color: colors.text2 },
+  emptyStateSubtext:    { fontSize: 14, color: colors.text3, marginTop: 8, textAlign: "center" },
 
-  card:                 { backgroundColor: "#1e1e3a", borderRadius: 14, marginBottom: 14, overflow: "hidden", borderWidth: 1, borderColor: "#2d2d4e" },
+  card:                 { backgroundColor: colors.surface2, borderRadius: 14, marginBottom: 14, overflow: "hidden", borderWidth: 1, borderColor: colors.border },
   cardHeader:           { flexDirection: "row", justifyContent: "space-between", padding: 16 },
   cardHeaderLeft:       { flex: 1, marginRight: 12 },
   cardHeaderRight:      { alignItems: "flex-end" },
-  cardCourse:           { fontSize: 11, fontWeight: "700", color: "#7c3aed", letterSpacing: 1, marginBottom: 2 },
-  cardTitle:            { fontSize: 16, fontWeight: "700", color: "#ffffff", marginBottom: 4 },
-  cardDesc:             { fontSize: 13, color: "#9ca3af", lineHeight: 18 },
-  cardDue:              { fontSize: 11, color: "#6b7280", marginBottom: 4 },
-  cardProgress:         { fontSize: 12, fontWeight: "700", color: "#a78bfa", marginBottom: 4 },
-  chevron:              { fontSize: 11, color: "#6b7280" },
+  cardCourse:           { fontSize: 11, fontWeight: "700", color: colors.primary, letterSpacing: 1, marginBottom: 2 },
+  cardTitle:            { fontSize: 16, fontWeight: "700", color: colors.text1, marginBottom: 4 },
+  cardDesc:             { fontSize: 13, color: colors.text2, lineHeight: 18 },
+  cardDue:              { fontSize: 11, color: colors.text3, marginBottom: 4 },
+  cardProgress:         { fontSize: 12, fontWeight: "700", color: colors.primaryLight, marginBottom: 4 },
+  chevron:              { fontSize: 11, color: colors.text3 },
 
-  taskList:             { borderTopWidth: 1, borderTopColor: "#2d2d4e", paddingHorizontal: 16, paddingBottom: 12, paddingTop: 8 },
-  noTasksText:          { fontSize: 13, color: "#6b7280", fontStyle: "italic", paddingVertical: 8 },
-  taskRow:              { flexDirection: "row", alignItems: "flex-start", paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: "#2d2d4e" },
-  checkbox:             { width: 22, height: 22, borderRadius: 6, borderWidth: 2, borderColor: "#7c3aed", marginRight: 12, marginTop: 2, alignItems: "center", justifyContent: "center" },
-  checkboxDone:         { backgroundColor: "#7c3aed", borderColor: "#7c3aed" },
-  checkmark:            { fontSize: 13, fontWeight: "800", color: "#ffffff", lineHeight: 15 },
+  taskList:             { borderTopWidth: 1, borderTopColor: colors.border, paddingHorizontal: 16, paddingBottom: 12, paddingTop: 8 },
+  noTasksText:          { fontSize: 13, color: colors.text3, fontStyle: "italic", paddingVertical: 8 },
+  taskRow:              { flexDirection: "row", alignItems: "flex-start", paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: colors.border },
+  checkbox:             { width: 22, height: 22, borderRadius: 6, borderWidth: 2, borderColor: colors.primary, marginRight: 12, marginTop: 2, alignItems: "center", justifyContent: "center" },
+  checkboxDone:         { backgroundColor: colors.primary, borderColor: colors.primary },
+  checkmark:            { fontSize: 13, fontWeight: "800", color: colors.text1, lineHeight: 15 },
   taskTextBlock:        { flex: 1 },
-  taskDay:              { fontSize: 11, fontWeight: "700", color: "#7c3aed", letterSpacing: 0.4, marginBottom: 2 },
-  taskDescription:      { fontSize: 14, color: "#d1d5db", lineHeight: 20 },
-  taskDescriptionDone:  { color: "#4b5563", textDecorationLine: "line-through" },
+  taskDay:              { fontSize: 11, fontWeight: "700", color: colors.primary, letterSpacing: 0.4, marginBottom: 2 },
+  taskDescription:      { fontSize: 14, color: colors.text1, lineHeight: 20 },
+  taskDescriptionDone:  { color: colors.text3, textDecorationLine: "line-through" },
 
-  xpToast:              { position: "absolute", bottom: 100, alignSelf: "center", backgroundColor: "#fbbf24", borderRadius: 14, paddingVertical: 10, paddingHorizontal: 24 },
-  xpToastText:          { fontSize: 24, fontWeight: "900", color: "#000000" },
+  xpToast:              { position: "absolute", bottom: 100, alignSelf: "center", backgroundColor: colors.gold, borderRadius: 14, paddingVertical: 10, paddingHorizontal: 24 },
+  xpToastText:          { fontSize: 24, fontWeight: "900", color: colors.bg },
 
   modalOverlay:         { flex: 1, backgroundColor: "rgba(0,0,0,0.85)", justifyContent: "center" },
-  modalCard:            { backgroundColor: "#1e1e3a", borderRadius: 20, margin: 24, padding: 28 },
-  modalTitle:           { fontSize: 22, fontWeight: "800", color: "#ffffff", marginBottom: 24 },
-  fieldLabel:           { fontSize: 10, fontWeight: "700", color: "#6b7280", letterSpacing: 1.5, marginBottom: 6, marginTop: 14 },
-  textInput:            { backgroundColor: "#2d2d4e", borderRadius: 10, padding: 12, fontSize: 15, color: "#ffffff", borderWidth: 1, borderColor: "#3d3d5e" },
+  modalCard:            { backgroundColor: colors.surface2, borderRadius: 20, margin: 24, padding: 28 },
+  modalTitle:           { fontSize: 22, fontWeight: "800", color: colors.text1, marginBottom: 24 },
+  fieldLabel:           { fontSize: 10, fontWeight: "700", color: colors.text3, letterSpacing: 1.5, marginBottom: 6, marginTop: 14 },
+  textInput:            { backgroundColor: colors.border, borderRadius: 10, padding: 12, fontSize: 15, color: colors.text1, borderWidth: 1, borderColor: colors.border },
   textInputMultiline:   { minHeight: 72, textAlignVertical: "top" },
   modalButtons:         { flexDirection: "row", gap: 12, marginTop: 28 },
-  cancelButton:         { flex: 1, backgroundColor: "#374151", borderRadius: 12, padding: 14, alignItems: "center" },
-  cancelButtonText:     { fontSize: 15, fontWeight: "700", color: "#9ca3af" },
-  submitButton:         { flex: 1, backgroundColor: "#7c3aed", borderRadius: 12, padding: 14, alignItems: "center" },
+  cancelButton:         { flex: 1, backgroundColor: colors.surface3, borderRadius: 12, padding: 14, alignItems: "center" },
+  cancelButtonText:     { fontSize: 15, fontWeight: "700", color: colors.text2 },
+  submitButton:         { flex: 1, backgroundColor: colors.primary, borderRadius: 12, padding: 14, alignItems: "center" },
   submitButtonDisabled: { opacity: 0.4 },
-  submitButtonText:     { fontSize: 15, fontWeight: "700", color: "#ffffff" },
+  submitButtonText:     { fontSize: 15, fontWeight: "700", color: colors.text1 },
 });
