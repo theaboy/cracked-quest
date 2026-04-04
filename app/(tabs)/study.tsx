@@ -56,6 +56,7 @@ export default function StudyScreen() {
 
   const {
     isStudying, isPaused, elapsedSeconds, mode,
+    deepSecondsLeft, nextBreakIn,
     isOnBreak, breakSecondsLeft,
     startSession, pauseSession, resumeSession, tick,
     startBreak, tickBreak, endBreak,
@@ -331,7 +332,8 @@ export default function StudyScreen() {
           {/* Deep Mode overlay (absoluteFill, renders on top) */}
           {deepPhase === "active" && view === "active" && (
             <DeepModeOverlay
-              elapsedSeconds={elapsedSeconds}
+              deepSecondsLeft={deepSecondsLeft}
+              nextBreakIn={nextBreakIn}
               isOnBreak={isOnBreak}
               breakSecondsLeft={breakSecondsLeft}
             />

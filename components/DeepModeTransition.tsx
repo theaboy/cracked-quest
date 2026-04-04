@@ -1,34 +1,52 @@
 import { useEffect, useRef, useState } from "react";
-import { View, Text, StyleSheet } from "react-native";
-import { Video, ResizeMode } from "expo-av";
+import { View, Text, Image, StyleSheet } from "react-native";
+import { Video, ResizeMode, AVPlaybackStatus } from "expo-av";
 import { colors } from "../lib/theme";
+
+// Video is 3.04s at 24fps
+const VIDEO_DURATION_MS = 3040;
+const BUBBLE_DELAY_MS = Math.round(VIDEO_DURATION_MS / 4); // 1/4 of video
+const PAUSE_AFTER_VIDEO_MS = 1500; // pause on last frame before advancing
 
 interface Props {
   onComplete: () => void;
 }
 
 export default function DeepModeTransition({ onComplete }: Props) {
+  const [showBubble, setShowBubble] = useState(false);
+  const [videoPlaying, setVideoPlaying] = useState(false);
+  const [videoEnded, setVideoEnded] = useState(false);
   const bubbleTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
   const advanceTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const [showBubble, setShowBubble] = useState(false);
+
+  const handlePlaybackStatus = (status: AVPlaybackStatus) => {
+    if (!status.isLoaded) return;
+
+    // Video started playing — swap from image to video
+    if (status.isPlaying && !videoPlaying) {
+      setVideoPlaying(true);
+
+      // Show bubble at 1/4 of video duration
+      bubbleTimeout.current = setTimeout(() => setShowBubble(true), BUBBLE_DELAY_MS);
+    }
+
+    // Video finished — pause on last frame, then advance
+    if (status.didJustFinish && !videoEnded) {
+      setVideoEnded(true);
+      advanceTimeout.current = setTimeout(() => onComplete(), PAUSE_AFTER_VIDEO_MS);
+    }
+  };
 
   useEffect(() => {
-    bubbleTimeout.current = setTimeout(() => {
-      setShowBubble(true);
-    }, 400);
-
-    advanceTimeout.current = setTimeout(() => {
-      onComplete();
-    }, 3000);
-
     return () => {
       if (bubbleTimeout.current) clearTimeout(bubbleTimeout.current);
       if (advanceTimeout.current) clearTimeout(advanceTimeout.current);
     };
-  }, [onComplete]);
+  }, []);
 
   return (
     <View style={styles.container}>
+      {/* Speech bubble */}
       {showBubble && (
         <View style={styles.bubbleWrapper}>
           <View style={styles.bubble}>
@@ -41,13 +59,24 @@ export default function DeepModeTransition({ onComplete }: Props) {
         </View>
       )}
 
+      {/* Static mascot — visible until video starts */}
+      {!videoPlaying && (
+        <Image
+          source={require("../assets/crack-mascot.png")}
+          style={styles.mascot}
+          resizeMode="contain"
+        />
+      )}
+
+      {/* Video — hidden until playing */}
       <Video
         source={require("../assets/crack-deep-mode.mp4")}
-        style={styles.video}
+        style={[styles.video, !videoPlaying && styles.hidden]}
         resizeMode={ResizeMode.CONTAIN}
         shouldPlay
         isLooping={false}
         isMuted
+        onPlaybackStatusUpdate={handlePlaybackStatus}
       />
     </View>
   );
@@ -62,7 +91,8 @@ const styles = StyleSheet.create({
   },
   bubbleWrapper: {
     alignItems: "center",
-    marginBottom: 16,
+    marginBottom: -4,
+    zIndex: 10,
   },
   bubble: {
     backgroundColor: colors.surface2,
@@ -70,7 +100,14 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
     borderColor: colors.primary,
     paddingVertical: 14,
-    paddingHorizontal: 20,
+    paddingHorizontal: 28,
+  },
+  bubbleText: {
+    color: colors.text1,
+    fontSize: 22,
+    fontWeight: "800",
+    letterSpacing: 0.5,
+    textAlign: "center",
   },
   spikeRow: {
     alignSelf: "center",
@@ -99,15 +136,16 @@ const styles = StyleSheet.create({
     borderRightColor: "transparent",
     borderTopColor: colors.surface2,
   },
-  bubbleText: {
-    color: colors.text1,
-    fontSize: 15,
-    fontWeight: "600",
-    lineHeight: 22,
-    textAlign: "center",
+  mascot: {
+    width: 280,
+    height: 280,
   },
   video: {
     width: 280,
     height: 280,
+    position: "absolute",
+  },
+  hidden: {
+    opacity: 0,
   },
 });
