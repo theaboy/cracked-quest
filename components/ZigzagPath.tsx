@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
 import { View, Text, StyleSheet, useWindowDimensions } from "react-native";
-import Svg, { Line, Circle } from "react-native-svg";
+import Svg, { Line } from "react-native-svg";
 import Animated, {
   useSharedValue,
   useAnimatedProps,
@@ -12,7 +12,6 @@ import Animated, {
 import { colors } from "../lib/theme";
 import type { Topic, Exam } from "../store/useCourseStore";
 
-const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 const AnimatedLine = Animated.createAnimatedComponent(Line);
 
 interface ZigzagPathProps {
@@ -53,8 +52,13 @@ function BeamConnector({
   status: "mastered" | "in_progress" | "locked" | "boss";
   index: number;
 }) {
-  // Traveling particle for in_progress
-  const particleProgress = useSharedValue(0);
+  const dx = x2 - x1;
+  const dy = y2 - y1;
+  const lineLength = Math.sqrt(dx * dx + dy * dy);
+  const beamLength = lineLength * 0.4; // bright segment is 40% of line
+
+  // Sweep offset for in_progress — moves the bright segment along the wire
+  const dashOffset = useSharedValue(lineLength + beamLength);
   // Pulsing glow for mastered
   const glowOpacity = useSharedValue(0.3);
   // Boss pulse
@@ -62,8 +66,8 @@ function BeamConnector({
 
   useEffect(() => {
     if (status === "in_progress") {
-      particleProgress.value = withRepeat(
-        withTiming(1, { duration: 1500, easing: Easing.inOut(Easing.ease) }),
+      dashOffset.value = withRepeat(
+        withTiming(-(beamLength), { duration: 2000, easing: Easing.inOut(Easing.ease) }),
         -1,
         false
       );
@@ -88,12 +92,11 @@ function BeamConnector({
         false
       );
     }
-  }, [status, particleProgress, glowOpacity, bossOpacity]);
+  }, [status, dashOffset, glowOpacity, bossOpacity, lineLength, beamLength]);
 
-  // Animated particle position
-  const particleProps = useAnimatedProps(() => ({
-    cx: x1 + (x2 - x1) * particleProgress.value,
-    cy: y1 + (y2 - y1) * particleProgress.value,
+  // Animated dash offset for sweep beam
+  const sweepProps = useAnimatedProps(() => ({
+    strokeDashoffset: dashOffset.value,
   }));
 
   // Animated glow line opacity
@@ -178,7 +181,8 @@ function BeamConnector({
     );
   }
 
-  // in_progress — traveling particle
+  // in_progress — smooth beam sweep
+  const dashArray = `${beamLength} ${lineLength}`;
   return (
     <>
       {/* Base dim line */}
@@ -189,21 +193,32 @@ function BeamConnector({
         y2={y2}
         stroke={colors.primary}
         strokeWidth={2}
-        strokeOpacity={0.3}
+        strokeOpacity={0.15}
       />
-      {/* Traveling particle */}
-      <AnimatedCircle
-        r={4}
-        fill={colors.primaryLight}
-        animatedProps={particleProps}
-        opacity={0.9}
+      {/* Bright sweep beam */}
+      <AnimatedLine
+        x1={x1}
+        y1={y1}
+        x2={x2}
+        y2={y2}
+        stroke={colors.primaryLight}
+        strokeWidth={3}
+        strokeLinecap="round"
+        strokeDasharray={dashArray}
+        animatedProps={sweepProps}
       />
-      {/* Particle glow */}
-      <AnimatedCircle
-        r={8}
-        fill={colors.primary}
-        animatedProps={particleProps}
-        opacity={0.3}
+      {/* Glow layer behind the sweep */}
+      <AnimatedLine
+        x1={x1}
+        y1={y1}
+        x2={x2}
+        y2={y2}
+        stroke={colors.primary}
+        strokeWidth={8}
+        strokeOpacity={0.2}
+        strokeLinecap="round"
+        strokeDasharray={dashArray}
+        animatedProps={sweepProps}
       />
     </>
   );
