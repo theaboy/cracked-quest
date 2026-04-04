@@ -1,6 +1,8 @@
 import { View, Text, StyleSheet } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { colors } from "../lib/theme";
+import { LevelAvatar } from "./LevelAvatar";
+import { type LevelName } from "../lib/levelSystem";
 
 interface LeaderboardRowProps {
   rank: number;
@@ -17,6 +19,9 @@ export function LeaderboardRow({
   tier,
   isCurrentUser,
 }: LeaderboardRowProps) {
+  const isTop3 = rank <= 3;
+  const avatarSize = isTop3 ? 58 : 50;
+
   const content = (
     <>
       <Text
@@ -28,6 +33,9 @@ export function LeaderboardRow({
       >
         {rank}
       </Text>
+      <View style={styles.avatarWrap}>
+        <LevelAvatar level={tier as LevelName} size={avatarSize} showGlow />
+      </View>
       <Text
         style={[
           styles.username,
@@ -36,14 +44,6 @@ export function LeaderboardRow({
       >
         {username}
         {isCurrentUser ? " ⭐" : ""}
-      </Text>
-      <Text
-        style={[
-          styles.tier,
-          isCurrentUser && styles.tierCurrentUser,
-        ]}
-      >
-        {tier}
       </Text>
       <Text style={styles.xp}>{xp.toLocaleString()} XP</Text>
     </>
@@ -99,6 +99,9 @@ const styles = StyleSheet.create({
   rankCurrentUser: {
     color: colors.gold,
   },
+  avatarWrap: {
+    marginRight: 10,
+  },
   username: {
     color: colors.text1,
     fontWeight: "600",
@@ -107,14 +110,6 @@ const styles = StyleSheet.create({
   },
   usernameCurrentUser: {
     fontWeight: "700",
-  },
-  tier: {
-    color: colors.text2,
-    fontSize: 12,
-    marginRight: 8,
-  },
-  tierCurrentUser: {
-    color: colors.primaryLight,
   },
   xp: {
     color: colors.gold,
