@@ -1,11 +1,12 @@
 import React from "react";
-import { View, Text, StyleSheet, useWindowDimensions } from "react-native";
+import { View, Text, TouchableOpacity, StyleSheet, useWindowDimensions } from "react-native";
 import { colors } from "../lib/theme";
 import type { Topic, Exam } from "../store/useCourseStore";
 
 interface ZigzagPathProps {
   topics: Topic[];
   exams: Exam[];
+  onTopicPress?: (topicId: string) => void;
 }
 
 const NODE_SIZE = 28;
@@ -23,7 +24,7 @@ function nodeColor(status: Topic["status"]) {
   }
 }
 
-export default function ZigzagPath({ topics, exams }: ZigzagPathProps) {
+export default function ZigzagPath({ topics, exams, onTopicPress }: ZigzagPathProps) {
   const { width: screenWidth } = useWindowDimensions();
   const hasUndefeatedExam = exams.some((e) => !e.defeated);
 
@@ -99,9 +100,13 @@ export default function ZigzagPath({ topics, exams }: ZigzagPathProps) {
         const isInProgress = topic.status === "in_progress";
         const isLocked = topic.status === "locked";
 
+        const NodeWrapper = onTopicPress ? TouchableOpacity : View;
+
         return (
-          <View
+          <NodeWrapper
             key={topic.id}
+            activeOpacity={onTopicPress ? 0.7 : 1}
+            onPress={onTopicPress ? () => onTopicPress(topic.id) : undefined}
             style={[
               styles.node,
               {
@@ -121,7 +126,7 @@ export default function ZigzagPath({ topics, exams }: ZigzagPathProps) {
                 {i + 1}
               </Text>
             )}
-          </View>
+          </NodeWrapper>
         );
       })}
 

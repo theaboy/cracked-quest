@@ -37,7 +37,8 @@
           "color": "#9B6DFF",
           "defaultChannel": "default"
         }
-      ]
+      ],
+      "expo-document-picker"
     ]
   }
 }

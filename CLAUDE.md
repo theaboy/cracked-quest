@@ -66,33 +66,47 @@ supabase functions deploy award_xp
 - **`supabase` is nullable.** `lib/supabase.ts` returns `null` when `EXPO_PUBLIC_SUPABASE_URL` is unset (to prevent crash on module load). Always call it as `supabase?.functions.invoke(...)` — never assume it's defined.
 - **Styling: `StyleSheet.create()` only.** NativeWind is in `package.json` but its babel/metro config is not yet wired up. Do not use Tailwind class names until that setup is done.
 - **`FlatList` inside `ScrollView` is forbidden.** React Native warns and breaks scroll. Use `View` + `.map()` instead.
+- **No third-party markdown libraries.** `react-native-markdown-display` was removed due to Metro bundler incompatibility. Use the custom `NoteRenderer` component (`components/NoteRenderer.tsx`) for all markdown rendering.
 
 ## Project Structure
 
 ```
-app/                    # Expo Router screens
-  _layout.tsx           # Root Stack navigator (no headers)
-  (auth)/               # Login, signup, onboarding screens
-  (tabs)/               # Tab navigator: Map, Study, Quests, Commons, Profile
-    _layout.tsx         # Tabs layout
-    index.tsx           # Progress Map (home tab)
-  map/[courseId].tsx    # Per-course 3D Babylon.js map
-components/             # Reusable UI: ChatBubble, OptionCard, TypingIndicator
-hooks/                  # Custom hooks: useBubbleSequence
+app/                          # Expo Router screens
+  _layout.tsx                 # Root Stack navigator (no headers)
+  (auth)/                     # Login, signup, onboarding screens
+  (tabs)/                     # Tab navigator: Map, Study, Quests, Commons, Profile
+    _layout.tsx               # Tabs layout
+    index.tsx                 # Progress Map (home tab)
+  map/[courseId].tsx          # Per-course 3D Babylon.js map
+  topic/[courseId]/[topicId].tsx  # Topic detail: notes, slides upload, diagrams, exams
+components/                   # Reusable UI components
+  NoteRenderer.tsx            # Custom markdown renderer (H2/H3, bullets, code blocks, tables, inline bold/italic/code)
+  DeepModeOverlay.tsx         # Focus mode overlay
+  ExitGateModal.tsx           # Confirm exit during study
+  FlashcardModal.tsx          # Flashcard review UI
+  ZigzagPath.tsx              # Visual topic path on map
+  CourseCard.tsx              # Course tile component
+  XpProgressBar.tsx / XpAnimatedCounter.tsx / RankBadge.tsx  # XP/rank display
+  LeaderboardList.tsx / LeaderboardRow.tsx  # Leaderboard display
+  StreakCard.tsx / ProfileAvatar.tsx        # Profile components
+  ChatBubble.tsx / OptionCard.tsx / TypingIndicator.tsx       # Onboarding flow
+hooks/                        # Custom hooks: useBubbleSequence
 lib/
-  supabase.ts           # Supabase client (reads EXPO_PUBLIC_ env vars)
-  theme.ts              # Design system constants (colors, spacing, radii)
-  mockData.ts           # Demo user, courses, leaderboard data
+  supabase.ts                 # Supabase client (reads EXPO_PUBLIC_ env vars)
+  theme.ts                    # Design system constants (colors, spacing, radii)
+  mockData.ts                 # Demo user, courses, leaderboard data
 store/
-  useAuthStore.ts       # Auth state: user, isLoading, setUser, clearUser
-  useCourseStore.ts     # Course/topic/exam state
-  useStudyStore.ts      # Study session state
-  useXpStore.ts         # XP/rank state
-supabase/functions/     # Deno Edge Functions (Deno runtime, JSR imports)
-  breakdown/            # Assignment AI breakdown → Claude task list JSON (stub)
-  quiz-gen/             # MCQ generation for study checkpoints (stub)
-  flashcards/           # Flashcard pair generation from notes (stub)
-  award_xp/             # Record study session + award XP (stub — no DB writes yet)
+  useAuthStore.ts             # Auth state: user, isLoading, setUser, clearUser
+  useCourseStore.ts           # Course/topic/exam state + setTopicNotes mutation
+  useStudyStore.ts            # Study session state (two-phase reset)
+  useXpStore.ts               # XP/rank state
+  useCommonsStore.ts          # Commons/social state
+  useQuestStore.ts            # Quest/challenge state
+supabase/functions/           # Deno Edge Functions (Deno runtime, JSR imports)
+  breakdown/                  # Assignment AI breakdown → Claude task list JSON (stub)
+  quiz-gen/                   # MCQ generation for study checkpoints (stub)
+  flashcards/                 # Flashcard pair generation from notes (stub)
+  award_xp/                   # Record study session + award XP (stub — no DB writes yet)
 ```
 
 ## Data Flow
@@ -122,9 +136,11 @@ ANTHROPIC_API_KEY=sk-ant-...
 
 ## Current State
 
-- Issue #3 (Study Mode UI) is complete: `study.tsx`, `useStudyStore`, `lib/supabase.ts`, and `award_xp` Edge Function are implemented on branch `feature/issue-3-study-mode-ui`
+- Issue #27 (Topic Detail Page) in progress: `app/topic/[courseId]/[topicId].tsx` implemented with notes display, slide upload (`expo-document-picker`), diagram generation stub, and related exams — branch `feature/issue-27-topic-detail-page`
+- Issue #3 (Study Mode UI) is complete: `study.tsx`, `useStudyStore`, `lib/supabase.ts`, and `award_xp` Edge Function implemented
 - Issue #1 (Onboarding) redesigned: 10-screen conversational flow with Crack mascot, speech bubbles, typing indicators
 - `useStudyStore` has a two-phase reset: `endSession()` stops the timer but **preserves `elapsedSeconds`** so the summary modal can read it; `resetSession()` clears everything and is called only after the modal is dismissed
+- `useCourseStore.setTopicNotes(courseId, topicId, notes)` mutates `topic.notes` in Zustand state (in-memory only — no DB persistence yet)
 - Edge Functions (`breakdown`, `quiz-gen`, `flashcards`, `award_xp`) are all stubs — no DB writes yet
 - `@babylonjs/react-native` is not yet in `package.json` — add it before working on the 3D map
 - MVP targets McGill University (Phase 1); manual course input only (no portal integration)
