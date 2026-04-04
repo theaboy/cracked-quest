@@ -1,5 +1,7 @@
 import { View, Text, StyleSheet } from "react-native";
 import { ChatMessage } from "../../lib/mockChatData";
+import { useChatStore } from "../../store/useChatStore";
+import SurveyCard from "./SurveyCard";
 
 interface MessageBubbleProps {
   message: ChatMessage;
@@ -32,15 +34,43 @@ function getInitials(name: string): string {
 }
 
 export default function MessageBubble({ message, isOwn }: MessageBubbleProps) {
-  const isSurvey = message.type === "survey";
+  const isSurvey = message.type === "survey" && !!message.surveyId;
+  const surveys = useChatStore((s) => s.surveys);
+  const voteSurvey = useChatStore((s) => s.voteSurvey);
+
+  if (isSurvey) {
+    const survey = surveys.find((s) => s.id === message.surveyId);
+    if (!survey) {
+      return null;
+    }
+    return (
+      <View style={styles.otherRow}>
+        <View style={styles.avatarColumn}>
+          <View
+            style={[
+              styles.avatar,
+              { backgroundColor: getAvatarColor(message.senderName) },
+            ]}
+          >
+            <Text style={styles.avatarText}>
+              {getInitials(message.senderName)}
+            </Text>
+          </View>
+        </View>
+        <View style={styles.surveyContent}>
+          <Text style={styles.senderName}>{message.senderName}</Text>
+          <SurveyCard survey={survey} onVote={voteSurvey} />
+          <Text style={styles.timestamp}>{message.timestamp}</Text>
+        </View>
+      </View>
+    );
+  }
 
   if (isOwn) {
     return (
       <View style={styles.ownRow}>
         <View style={styles.ownBubble}>
-          <Text style={styles.ownText}>
-            {isSurvey ? "[Survey]" : message.text}
-          </Text>
+          <Text style={styles.ownText}>{message.text}</Text>
         </View>
         <Text style={styles.timestamp}>{message.timestamp}</Text>
       </View>
@@ -64,9 +94,7 @@ export default function MessageBubble({ message, isOwn }: MessageBubbleProps) {
       <View style={styles.otherContent}>
         <Text style={styles.senderName}>{message.senderName}</Text>
         <View style={styles.otherBubble}>
-          <Text style={styles.otherText}>
-            {isSurvey ? "[Survey]" : message.text}
-          </Text>
+          <Text style={styles.otherText}>{message.text}</Text>
         </View>
         <Text style={styles.timestamp}>{message.timestamp}</Text>
       </View>
@@ -119,6 +147,9 @@ const styles = StyleSheet.create({
   otherContent: {
     flex: 1,
     maxWidth: "75%",
+  },
+  surveyContent: {
+    flex: 1,
   },
   senderName: {
     color: "#9896AA",

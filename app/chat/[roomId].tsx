@@ -14,18 +14,26 @@ import { useChatStore } from "../../store/useChatStore";
 import { DEMO_CURRENT_USER } from "../../lib/mockChatData";
 import MessageBubble from "../../components/chat/MessageBubble";
 import ChatInput from "../../components/chat/ChatInput";
+import SurveyCreator from "../../components/chat/SurveyCreator";
+import ActiveSurveyBanner from "../../components/chat/ActiveSurveyBanner";
 
 export default function ChatThreadScreen() {
   const { roomId } = useLocalSearchParams<{ roomId: string }>();
   const router = useRouter();
   const scrollViewRef = useRef<ScrollView>(null);
 
+  const [surveyModalVisible, setSurveyModalVisible] = useState(false);
+
   const rooms = useChatStore((s) => s.rooms);
   const messages = useChatStore((s) => s.messages);
   const addMessage = useChatStore((s) => s.addMessage);
+  const addSurvey = useChatStore((s) => s.addSurvey);
+  const surveys = useChatStore((s) => s.surveys);
 
   const room = rooms.find((r) => r.id === roomId);
   const roomMessages = roomId ? messages[roomId] ?? [] : [];
+  const roomSurveys = surveys.filter((s) => s.roomId === roomId);
+  const activeSurvey = roomSurveys.find((s) => s.userVote === null) ?? roomSurveys[roomSurveys.length - 1];
 
   // Auto-scroll to bottom on mount and when messages change
   useEffect(() => {
@@ -53,7 +61,45 @@ export default function ChatThreadScreen() {
   }
 
   function handleSurveyPress() {
-    // Placeholder for Task 5 survey creation
+    setSurveyModalVisible(true);
+  }
+
+  function handleSurveySubmit(question: string, options: string[]) {
+    if (!roomId) return;
+    const surveyId = `survey-${Date.now()}`;
+    const messageId = `msg-${Date.now()}`;
+    const surveyOptions = options.map((text, i) => ({
+      id: `opt-${Date.now()}-${i}`,
+      text,
+      votes: 0,
+    }));
+    addSurvey(
+      {
+        id: surveyId,
+        roomId: roomId as string,
+        messageId,
+        question,
+        options: surveyOptions,
+        totalVotes: 0,
+        userVote: null,
+        creatorName: DEMO_CURRENT_USER.name,
+      },
+      {
+        id: messageId,
+        roomId: roomId as string,
+        senderId: DEMO_CURRENT_USER.id,
+        senderName: DEMO_CURRENT_USER.name,
+        senderAvatar: DEMO_CURRENT_USER.avatar,
+        text: `\ud83d\udcca ${question}`,
+        timestamp: new Date().toLocaleTimeString([], {
+          hour: "numeric",
+          minute: "2-digit",
+        }),
+        type: "survey",
+        surveyId,
+      }
+    );
+    setSurveyModalVisible(false);
   }
 
   return (
@@ -82,6 +128,14 @@ export default function ChatThreadScreen() {
         </View>
         <View style={styles.headerSpacer} />
       </View>
+
+      {/* Active Survey Banner */}
+      <ActiveSurveyBanner
+        survey={activeSurvey}
+        onPress={() => {
+          scrollViewRef.current?.scrollToEnd({ animated: true });
+        }}
+      />
 
       {/* Messages */}
       <ScrollView
@@ -112,6 +166,13 @@ export default function ChatThreadScreen() {
 
       {/* Input */}
       <ChatInput onSend={handleSend} onSurveyPress={handleSurveyPress} />
+
+      {/* Survey Creator Modal */}
+      <SurveyCreator
+        visible={surveyModalVisible}
+        onClose={() => setSurveyModalVisible(false)}
+        onSubmit={handleSurveySubmit}
+      />
     </KeyboardAvoidingView>
   );
 }
