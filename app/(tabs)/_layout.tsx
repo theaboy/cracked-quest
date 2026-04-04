@@ -32,7 +32,7 @@ export default function TabLayout() {
           options={{
             tabBarIcon: ({ focused }) => {
               const iconName = focused ? config.activeIcon : config.icon;
-              const iconColor = focused ? "#B99BFF" : "#5C5B6E";
+              const iconColor = focused ? colors.primaryLight : colors.text3;
 
               if (focused) {
                 return (
@@ -56,9 +56,9 @@ export default function TabLayout() {
 
 const styles = StyleSheet.create({
   tabBar: {
-    backgroundColor: "#141418",
+    backgroundColor: colors.surface,
     borderTopWidth: 1,
-    borderTopColor: "#2E2E3E",
+    borderTopColor: colors.border,
     height: 70,
   },
   pill: {
@@ -70,7 +70,7 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
   },
   pillLabel: {
-    color: "#B99BFF",
+    color: colors.primaryLight,
     fontSize: 11,
     fontWeight: "600",
     letterSpacing: 1,

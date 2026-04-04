@@ -1,3 +1,4 @@
+import "../global.css";
 import { useEffect, useRef, useState } from "react";
 import { Slot, useRouter, useSegments } from "expo-router";
 import { useAuthStore } from "../store/useAuthStore";

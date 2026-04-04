@@ -133,7 +133,7 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   primaryBtnText: {
-    color: "#FFF",
+    color: colors.white,
     fontSize: 14,
     fontWeight: "700",
     letterSpacing: 0.8,
@@ -162,7 +162,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   goldBtnText: {
-    color: "#1A1400",
+    color: colors.bg,
     fontSize: 14,
     fontWeight: "700",
     letterSpacing: 0.8,

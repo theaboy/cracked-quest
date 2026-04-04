@@ -1,12 +1,22 @@
-import React from "react";
-import { View, Text, TouchableOpacity, StyleSheet, useWindowDimensions } from "react-native";
+import React, { useEffect } from "react";
+import { View, Text, StyleSheet, useWindowDimensions } from "react-native";
+import Svg, { Line } from "react-native-svg";
+import Animated, {
+  useSharedValue,
+  useAnimatedProps,
+  withRepeat,
+  withTiming,
+  withSequence,
+  Easing,
+} from "react-native-reanimated";
 import { colors } from "../lib/theme";
 import type { Topic, Exam } from "../store/useCourseStore";
+
+const AnimatedLine = Animated.createAnimatedComponent(Line);
 
 interface ZigzagPathProps {
   topics: Topic[];
   exams: Exam[];
-  onTopicPress?: (topicId: string) => void;
 }
 
 const NODE_SIZE = 28;
@@ -24,7 +34,197 @@ function nodeColor(status: Topic["status"]) {
   }
 }
 
-export default function ZigzagPath({ topics, exams, onTopicPress }: ZigzagPathProps) {
+/** Animated beam connector between two nodes */
+function BeamConnector({
+  x1,
+  y1,
+  x2,
+  y2,
+  lineColor,
+  status,
+  index,
+}: {
+  x1: number;
+  y1: number;
+  x2: number;
+  y2: number;
+  lineColor: string;
+  status: "mastered" | "in_progress" | "locked" | "boss";
+  index: number;
+}) {
+  const dx = x2 - x1;
+  const dy = y2 - y1;
+  const lineLength = Math.sqrt(dx * dx + dy * dy);
+  const beamLength = lineLength * 0.4; // bright segment is 40% of line
+
+  // Sweep offset for in_progress — moves the bright segment along the wire
+  const dashOffset = useSharedValue(lineLength + beamLength);
+  // Pulsing glow for mastered
+  const glowOpacity = useSharedValue(0.3);
+  // Boss pulse
+  const bossOpacity = useSharedValue(0.4);
+
+  useEffect(() => {
+    if (status === "in_progress") {
+      dashOffset.value = withRepeat(
+        withTiming(-(beamLength), { duration: 2000, easing: Easing.inOut(Easing.ease) }),
+        -1,
+        false
+      );
+    }
+    if (status === "mastered") {
+      glowOpacity.value = withRepeat(
+        withSequence(
+          withTiming(0.8, { duration: 1200, easing: Easing.inOut(Easing.sin) }),
+          withTiming(0.3, { duration: 1200, easing: Easing.inOut(Easing.sin) })
+        ),
+        -1,
+        false
+      );
+    }
+    if (status === "boss") {
+      bossOpacity.value = withRepeat(
+        withSequence(
+          withTiming(0.9, { duration: 800, easing: Easing.inOut(Easing.sin) }),
+          withTiming(0.4, { duration: 800, easing: Easing.inOut(Easing.sin) })
+        ),
+        -1,
+        false
+      );
+    }
+  }, [status, dashOffset, glowOpacity, bossOpacity, lineLength, beamLength]);
+
+  // Animated dash offset for sweep beam
+  const sweepProps = useAnimatedProps(() => ({
+    strokeDashoffset: dashOffset.value,
+  }));
+
+  // Animated glow line opacity
+  const glowLineProps = useAnimatedProps(() => ({
+    strokeOpacity: glowOpacity.value,
+  }));
+
+  // Boss glow line opacity
+  const bossLineProps = useAnimatedProps(() => ({
+    strokeOpacity: bossOpacity.value,
+  }));
+
+  if (status === "locked") {
+    // Dim static line, no animation
+    return (
+      <>
+        <Line
+          x1={x1}
+          y1={y1}
+          x2={x2}
+          y2={y2}
+          stroke={colors.border}
+          strokeWidth={1.5}
+          strokeOpacity={0.3}
+          strokeDasharray="4,4"
+        />
+      </>
+    );
+  }
+
+  if (status === "mastered") {
+    // Pulsing glow beam
+    return (
+      <>
+        {/* Base line */}
+        <Line
+          x1={x1}
+          y1={y1}
+          x2={x2}
+          y2={y2}
+          stroke={colors.success}
+          strokeWidth={2}
+          strokeOpacity={0.6}
+        />
+        {/* Glow layer */}
+        <AnimatedLine
+          x1={x1}
+          y1={y1}
+          x2={x2}
+          y2={y2}
+          stroke={colors.success}
+          strokeWidth={6}
+          animatedProps={glowLineProps}
+        />
+      </>
+    );
+  }
+
+  if (status === "boss") {
+    // Pulsing red beam
+    return (
+      <>
+        <Line
+          x1={x1}
+          y1={y1}
+          x2={x2}
+          y2={y2}
+          stroke={colors.danger}
+          strokeWidth={2}
+          strokeOpacity={0.5}
+        />
+        <AnimatedLine
+          x1={x1}
+          y1={y1}
+          x2={x2}
+          y2={y2}
+          stroke={colors.danger}
+          strokeWidth={6}
+          animatedProps={bossLineProps}
+        />
+      </>
+    );
+  }
+
+  // in_progress — smooth beam sweep
+  const dashArray = `${beamLength} ${lineLength}`;
+  return (
+    <>
+      {/* Base dim line */}
+      <Line
+        x1={x1}
+        y1={y1}
+        x2={x2}
+        y2={y2}
+        stroke={colors.primary}
+        strokeWidth={2}
+        strokeOpacity={0.15}
+      />
+      {/* Bright sweep beam */}
+      <AnimatedLine
+        x1={x1}
+        y1={y1}
+        x2={x2}
+        y2={y2}
+        stroke={colors.primaryLight}
+        strokeWidth={3}
+        strokeLinecap="round"
+        strokeDasharray={dashArray}
+        animatedProps={sweepProps}
+      />
+      {/* Glow layer behind the sweep */}
+      <AnimatedLine
+        x1={x1}
+        y1={y1}
+        x2={x2}
+        y2={y2}
+        stroke={colors.primary}
+        strokeWidth={8}
+        strokeOpacity={0.2}
+        strokeLinecap="round"
+        strokeDasharray={dashArray}
+        animatedProps={sweepProps}
+      />
+    </>
+  );
+}
+
+export default function ZigzagPath({ topics, exams }: ZigzagPathProps) {
   const { width: screenWidth } = useWindowDimensions();
   const hasUndefeatedExam = exams.some((e) => !e.defeated);
 
@@ -32,10 +232,11 @@ export default function ZigzagPath({ topics, exams, onTopicPress }: ZigzagPathPr
   if (totalNodes === 0) return null;
 
   // Calculate horizontal spacing to fit all nodes
-  const availableWidth = screenWidth - 160; // card padding + button area
+  const availableWidth = screenWidth - 160;
   const nodeSpacing = Math.max(NODE_SIZE + 4, availableWidth / totalNodes);
   const containerHeight = NODE_SIZE + VERTICAL_OFFSET * 2 + 8;
   const centerY = containerHeight / 2;
+  const containerWidth = totalNodes * nodeSpacing;
 
   // Build node positions
   const positions: { x: number; y: number }[] = [];
@@ -46,52 +247,55 @@ export default function ZigzagPath({ topics, exams, onTopicPress }: ZigzagPathPr
   }
 
   return (
-    <View style={[styles.container, { height: containerHeight, width: totalNodes * nodeSpacing }]}>
-      {/* Draw connector lines between nodes */}
-      {positions.map((pos, i) => {
-        if (i === 0) return null;
-        const prev = positions[i - 1];
-        const dx = pos.x - prev.x;
-        const dy = pos.y - prev.y;
-        const fullLength = Math.sqrt(dx * dx + dy * dy);
-        const angle = Math.atan2(dy, dx) * (180 / Math.PI);
+    <View style={[styles.container, { height: containerHeight, width: containerWidth }]}>
+      {/* SVG layer for animated beams */}
+      <Svg
+        width={containerWidth}
+        height={containerHeight}
+        style={StyleSheet.absoluteFill}
+      >
+        {positions.map((pos, i) => {
+          if (i === 0) return null;
+          const prev = positions[i - 1];
 
-        // Shorten line by the radius of each node so it stops at the circle border
-        const prevRadius = NODE_SIZE / 2;
-        const currRadius = (i < topics.length) ? NODE_SIZE / 2 : BOSS_NODE_SIZE / 2;
-        const shortenTotal = prevRadius + currRadius;
-        const lineLength = Math.max(0, fullLength - shortenTotal);
+          // Shorten line by node radii
+          const dx = pos.x - prev.x;
+          const dy = pos.y - prev.y;
+          const fullLength = Math.sqrt(dx * dx + dy * dy);
+          const prevRadius = NODE_SIZE / 2;
+          const currRadius = i < topics.length ? NODE_SIZE / 2 : BOSS_NODE_SIZE / 2;
+          const unitX = dx / fullLength;
+          const unitY = dy / fullLength;
+          const startX = prev.x + unitX * prevRadius;
+          const startY = prev.y + unitY * prevRadius;
+          const endX = pos.x - unitX * currRadius;
+          const endY = pos.y - unitY * currRadius;
 
-        // Offset the start point along the direction by prevRadius
-        const unitX = dx / fullLength;
-        const unitY = dy / fullLength;
-        const startX = prev.x + unitX * prevRadius;
-        const startY = prev.y + unitY * prevRadius;
+          // Determine beam status
+          let status: "mastered" | "in_progress" | "locked" | "boss";
+          let lineColor: string;
+          if (i < topics.length) {
+            status = topics[i].status;
+            lineColor = nodeColor(topics[i].status);
+          } else {
+            status = "boss";
+            lineColor = colors.danger;
+          }
 
-        // Determine line color from destination node
-        let lineColor: string;
-        if (i < topics.length) {
-          lineColor = nodeColor(topics[i].status);
-        } else {
-          lineColor = colors.danger;
-        }
-
-        return (
-          <View
-            key={`line-${i}`}
-            style={{
-              position: "absolute",
-              left: startX,
-              top: startY - 1,
-              width: lineLength,
-              height: 2,
-              backgroundColor: lineColor,
-              transform: [{ rotate: `${angle}deg` }],
-              transformOrigin: "left center",
-            }}
-          />
-        );
-      })}
+          return (
+            <BeamConnector
+              key={`beam-${i}`}
+              x1={startX}
+              y1={startY}
+              x2={endX}
+              y2={endY}
+              lineColor={lineColor}
+              status={status}
+              index={i}
+            />
+          );
+        })}
+      </Svg>
 
       {/* Draw topic nodes */}
       {topics.map((topic, i) => {
@@ -100,13 +304,9 @@ export default function ZigzagPath({ topics, exams, onTopicPress }: ZigzagPathPr
         const isInProgress = topic.status === "in_progress";
         const isLocked = topic.status === "locked";
 
-        const NodeWrapper = onTopicPress ? TouchableOpacity : View;
-
         return (
-          <NodeWrapper
+          <View
             key={topic.id}
-            activeOpacity={onTopicPress ? 0.7 : 1}
-            onPress={onTopicPress ? () => onTopicPress(topic.id) : undefined}
             style={[
               styles.node,
               {
@@ -126,7 +326,7 @@ export default function ZigzagPath({ topics, exams, onTopicPress }: ZigzagPathPr
                 {i + 1}
               </Text>
             )}
-          </NodeWrapper>
+          </View>
         );
       })}
 
