@@ -12,6 +12,7 @@ import {
 import { useCommonsStore, type ResourceType } from "../../store/useCommonsStore";
 import { useAuthStore } from "../../store/useAuthStore"; // static accessor only — never used as a hook
 import { useXpStore } from "../../store/useXpStore";
+import ChatRoomList from "../../components/chat/ChatRoomList";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -110,12 +111,8 @@ export default function CommonsScreen() {
         </TouchableOpacity>
       </View>
 
-      {/* ── Chat placeholder ───────────────────────────────────────────────── */}
-      {activeSegment === "chat" && (
-        <View>
-          <Text style={{ color: "#fff", textAlign: "center", marginTop: 40 }}>Chat rooms coming soon...</Text>
-        </View>
-      )}
+      {/* ── Chat rooms ─────────────────────────────────────────────────────── */}
+      {activeSegment === "chat" && <ChatRoomList />}
 
       {/* ── Resources content ──────────────────────────────────────────────── */}
       {activeSegment === "resources" && (
