@@ -7,8 +7,8 @@ The study screen already supports Focus and Deep mode selection, a timer, and qu
 ## Entry Flow
 
 1. User selects "Deep" mode on study setup screen and taps Start Session
-2. Crack serious mode animation plays (video asset — placeholder static image until asset is provided)
-3. Screen transitions to Deep Mode UI
+2. **Transition screen:** Full-screen black background, Crack serious mode video plays (`assets/crack-deep-mode.mp4`), "Lock in" speech bubble appears on top of mascot (same ChatBubble component from onboarding with purple border and spike pointing down). Video loops once, transition auto-advances after ~3 seconds.
+3. Screen transitions to Deep Mode active session UI
 
 ## Deep Mode Active Session
 
