@@ -18,6 +18,7 @@ import {
   getExamCountdown,
   type QuizQuestion,
 } from "../../lib/questionBank";
+import { scheduleDailyReminders } from "../../lib/notifications";
 
 const MOCK_TOPICS = [
   { id: "t1", name: "Linear Regression", course: "COMP 551" },
@@ -81,6 +82,11 @@ export default function StudyScreen() {
 
     setSummaryDuration(elapsed);
     setView("summary");
+
+    // Push daily reminders forward since user studied today — fire-and-forget
+    scheduleDailyReminders().catch((err) =>
+      console.warn("[notifications] reschedule after session failed:", err)
+    );
 
     try {
       const { data, error } = await supabase?.functions.invoke("award_xp", {
