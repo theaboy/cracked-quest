@@ -49,7 +49,7 @@ export default function SplashScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#000000",
+    backgroundColor: colors.bg,
   },
   upper: {
     alignItems: "center",
@@ -102,7 +102,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   whiteBtnText: {
-    color: "#000000",
+    color: colors.bg,
     fontSize: 15,
     fontWeight: "700",
     letterSpacing: 0.8,
