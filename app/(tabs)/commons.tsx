@@ -44,6 +44,7 @@ export default function CommonsScreen() {
   const { resources, addResource, incrementDownload } = useCommonsStore();
   const addXp = useXpStore((s) => s.addXp);
 
+  const [activeSegment, setActiveSegment] = useState<"chat" | "resources">("chat");
   const [activeFilter, setActiveFilter] = useState<string>("All");
   const [modalVisible, setModalVisible] = useState(false);
   const [formTitle, setFormTitle] = useState("");
@@ -85,63 +86,93 @@ export default function CommonsScreen() {
 
       {/* ── Header ─────────────────────────────────────────────────────────── */}
       <View style={styles.headerRow}>
-        <Text style={styles.screenTitle}>The Commons</Text>
-        <TouchableOpacity style={styles.uploadButton} onPress={handleOpenModal}>
-          <Text style={styles.uploadButtonText}>+ Upload</Text>
+        <Text style={styles.screenTitle}>Community</Text>
+        {activeSegment === "resources" && (
+          <TouchableOpacity style={styles.uploadButton} onPress={handleOpenModal}>
+            <Text style={styles.uploadButtonText}>+ Upload</Text>
+          </TouchableOpacity>
+        )}
+      </View>
+
+      {/* ── Segment toggle ──────────────────────────────────────────────────── */}
+      <View style={styles.segmentContainer}>
+        <TouchableOpacity
+          style={[styles.segmentPill, activeSegment === "chat" && styles.segmentPillActive]}
+          onPress={() => setActiveSegment("chat")}
+        >
+          <Text style={[styles.segmentText, activeSegment === "chat" && styles.segmentTextActive]}>Chat</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.segmentPill, activeSegment === "resources" && styles.segmentPillActive]}
+          onPress={() => setActiveSegment("resources")}
+        >
+          <Text style={[styles.segmentText, activeSegment === "resources" && styles.segmentTextActive]}>Resources</Text>
         </TouchableOpacity>
       </View>
 
-      {/* ── Course filter pills ─────────────────────────────────────────────── */}
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        style={styles.filterBar}
-        contentContainerStyle={styles.filterBarContent}
-      >
-        {COURSES.map((course) => (
-          <TouchableOpacity
-            key={course}
-            style={[styles.filterPill, activeFilter === course && styles.filterPillActive]}
-            onPress={() => setActiveFilter(course)}
+      {/* ── Chat placeholder ───────────────────────────────────────────────── */}
+      {activeSegment === "chat" && (
+        <View>
+          <Text style={{ color: "#fff", textAlign: "center", marginTop: 40 }}>Chat rooms coming soon...</Text>
+        </View>
+      )}
+
+      {/* ── Resources content ──────────────────────────────────────────────── */}
+      {activeSegment === "resources" && (
+        <>
+          {/* ── Course filter pills ─────────────────────────────────────────── */}
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            style={styles.filterBar}
+            contentContainerStyle={styles.filterBarContent}
           >
-            <Text style={[styles.filterPillText, activeFilter === course && styles.filterPillTextActive]}>
-              {course}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </ScrollView>
+            {COURSES.map((course) => (
+              <TouchableOpacity
+                key={course}
+                style={[styles.filterPill, activeFilter === course && styles.filterPillActive]}
+                onPress={() => setActiveFilter(course)}
+              >
+                <Text style={[styles.filterPillText, activeFilter === course && styles.filterPillTextActive]}>
+                  {course}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
 
-      {/* ── Resource list ───────────────────────────────────────────────────── */}
-      <ScrollView contentContainerStyle={styles.listContent}>
+          {/* ── Resource list ───────────────────────────────────────────────── */}
+          <ScrollView contentContainerStyle={styles.listContent}>
 
-        {filteredResources.length === 0 && (
-          <View style={styles.emptyState}>
-            <Text style={styles.emptyStateText}>No resources yet.</Text>
-            <Text style={styles.emptyStateSubtext}>Tap "+ Upload" to share one.</Text>
-          </View>
-        )}
-
-        {filteredResources.map((resource) => (
-          <View key={resource.id} style={styles.card}>
-            <View style={styles.cardBody}>
-              <View style={[styles.typeBadge, { backgroundColor: TYPE_BADGE_COLORS[resource.type] }]}>
-                <Text style={styles.typeBadgeText}>{resource.type}</Text>
+            {filteredResources.length === 0 && (
+              <View style={styles.emptyState}>
+                <Text style={styles.emptyStateText}>No resources yet.</Text>
+                <Text style={styles.emptyStateSubtext}>Tap "+ Upload" to share one.</Text>
               </View>
-              <Text style={styles.cardTitle}>{resource.title}</Text>
-              <Text style={styles.cardMeta}>by {resource.uploaderName} · {resource.course}</Text>
-            </View>
-            <TouchableOpacity
-              style={styles.downloadButton}
-              onPress={() => incrementDownload(resource.id)}
-              activeOpacity={0.7}
-            >
-              <Text style={styles.downloadIcon}>⬇</Text>
-              <Text style={styles.downloadCount}>{resource.downloadCount}</Text>
-            </TouchableOpacity>
-          </View>
-        ))}
+            )}
 
-      </ScrollView>
+            {filteredResources.map((resource) => (
+              <View key={resource.id} style={styles.card}>
+                <View style={styles.cardBody}>
+                  <View style={[styles.typeBadge, { backgroundColor: TYPE_BADGE_COLORS[resource.type] }]}>
+                    <Text style={styles.typeBadgeText}>{resource.type}</Text>
+                  </View>
+                  <Text style={styles.cardTitle}>{resource.title}</Text>
+                  <Text style={styles.cardMeta}>by {resource.uploaderName} · {resource.course}</Text>
+                </View>
+                <TouchableOpacity
+                  style={styles.downloadButton}
+                  onPress={() => incrementDownload(resource.id)}
+                  activeOpacity={0.7}
+                >
+                  <Text style={styles.downloadIcon}>⬇</Text>
+                  <Text style={styles.downloadCount}>{resource.downloadCount}</Text>
+                </TouchableOpacity>
+              </View>
+            ))}
+
+          </ScrollView>
+        </>
+      )}
 
       {/* ── Upload modal ────────────────────────────────────────────────────── */}
       <Modal
@@ -223,6 +254,12 @@ export default function CommonsScreen() {
 
 const styles = StyleSheet.create({
   container:            { flex: 1, backgroundColor: "#0f0f23" },
+
+  segmentContainer:     { flexDirection: "row", alignItems: "center", justifyContent: "center", backgroundColor: "#141418", borderRadius: 14, padding: 4, marginHorizontal: 20, marginBottom: 16 },
+  segmentPill:          { flex: 1, paddingVertical: 10, borderRadius: 12, alignItems: "center" },
+  segmentPillActive:    { backgroundColor: "#8B5CF6" },
+  segmentText:          { color: "#9896AA", fontWeight: "600", fontSize: 14 },
+  segmentTextActive:    { color: "#ffffff" },
 
   headerRow:            { flexDirection: "row", justifyContent: "space-between", alignItems: "center", paddingHorizontal: 20, paddingTop: 20, marginBottom: 16 },
   screenTitle:          { fontSize: 26, fontWeight: "800", color: "#ffffff" },
