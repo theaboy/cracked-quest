@@ -3,7 +3,7 @@ import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, StyleSheet
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import * as DocumentPicker from "expo-document-picker";
-import Markdown from "react-native-markdown-display";
+import NoteRenderer from "../../../components/NoteRenderer";
 import { useCourseStore } from "../../../store/useCourseStore";
 import { colors, radii, spacing } from "../../../lib/theme";
 
@@ -194,7 +194,7 @@ export default function TopicDetailScreen() {
 
           {topic.notes ? (
             <View style={styles.notesCard}>
-              <Markdown style={markdownStyles}>{topic.notes}</Markdown>
+              <NoteRenderer content={topic.notes} />
             </View>
           ) : (
             <View style={styles.emptyState}>
@@ -276,117 +276,6 @@ export default function TopicDetailScreen() {
   );
 }
 
-const markdownStyles = StyleSheet.create({
-  body: {
-    color: colors.text1,
-    fontSize: 14,
-    lineHeight: 22,
-  },
-  heading1: {
-    color: colors.text1,
-    fontSize: 20,
-    fontWeight: "800",
-    marginTop: 8,
-    marginBottom: 12,
-  },
-  heading2: {
-    color: colors.text1,
-    fontSize: 17,
-    fontWeight: "700",
-    marginTop: 16,
-    marginBottom: 8,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-    paddingBottom: 4,
-  },
-  heading3: {
-    color: colors.primaryLight,
-    fontSize: 14,
-    fontWeight: "700",
-    marginTop: 12,
-    marginBottom: 6,
-    textTransform: "uppercase",
-    letterSpacing: 0.8,
-  },
-  strong: {
-    color: colors.text1,
-    fontWeight: "700",
-  },
-  em: {
-    color: colors.text2,
-    fontStyle: "italic",
-  },
-  bullet_list: {
-    marginBottom: 8,
-  },
-  list_item: {
-    color: colors.text1,
-    marginBottom: 4,
-  },
-  code_inline: {
-    color: colors.success,
-    backgroundColor: colors.surface3,
-    fontFamily: "monospace",
-    fontSize: 13,
-    paddingHorizontal: 4,
-    borderRadius: 4,
-  },
-  fence: {
-    backgroundColor: colors.surface3,
-    borderRadius: radii.sm,
-    padding: spacing.md,
-    marginVertical: 8,
-    borderLeftWidth: 3,
-    borderLeftColor: colors.primary,
-  },
-  code_block: {
-    color: colors.text1,
-    fontFamily: "monospace",
-    fontSize: 13,
-    lineHeight: 20,
-  },
-  hr: {
-    backgroundColor: colors.border,
-    height: 1,
-    marginVertical: 12,
-  },
-  table: {
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: radii.sm,
-    marginVertical: 8,
-    overflow: "hidden",
-  },
-  thead: {
-    backgroundColor: colors.surface3,
-  },
-  th: {
-    color: colors.text2,
-    fontWeight: "700",
-    fontSize: 12,
-    padding: 8,
-    borderRightWidth: 1,
-    borderRightColor: colors.border,
-  },
-  td: {
-    color: colors.text1,
-    fontSize: 13,
-    padding: 8,
-    borderRightWidth: 1,
-    borderRightColor: colors.border,
-  },
-  tr: {
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-  },
-  blockquote: {
-    backgroundColor: colors.surface3,
-    borderLeftWidth: 3,
-    borderLeftColor: colors.gold,
-    paddingLeft: 12,
-    marginVertical: 8,
-  },
-});
 
 const styles = StyleSheet.create({
   safeArea: {
