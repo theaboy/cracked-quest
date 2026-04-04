@@ -6,6 +6,7 @@ export interface Topic {
   status: "locked" | "in_progress" | "mastered";
   masteryScore: number;
   notes?: string;
+  keyPoints?: string[];
 }
 
 export interface Exam {
@@ -31,6 +32,7 @@ interface CourseState {
   setCourses: (courses: Course[]) => void;
   clearCourses: () => void;
   setTopicNotes: (courseId: string, topicId: string, notes: string) => void;
+  setTopicKeyPoints: (courseId: string, topicId: string, keyPoints: string[]) => void;
 }
 
 export const useCourseStore = create<CourseState>((set) => ({
@@ -48,6 +50,19 @@ export const useCourseStore = create<CourseState>((set) => ({
               ...course,
               topics: course.topics.map((topic) =>
                 topic.id !== topicId ? topic : { ...topic, notes }
+              ),
+            }
+      ),
+    })),
+  setTopicKeyPoints: (courseId, topicId, keyPoints) =>
+    set((s) => ({
+      courses: s.courses.map((course) =>
+        course.id !== courseId
+          ? course
+          : {
+              ...course,
+              topics: course.topics.map((topic) =>
+                topic.id !== topicId ? topic : { ...topic, keyPoints }
               ),
             }
       ),

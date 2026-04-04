@@ -8,54 +8,43 @@ export const DEMO_USER = {
 
 const NOTES_T1 = `## Linear Regression
 
-**Goal:** Model a continuous output *y* from input features **x** by fitting a linear hyperplane that minimises prediction error.
+**Goal:** Model a continuous output $y$ from input features $\\mathbf{x}$ by fitting a linear hyperplane that minimises prediction error.
 
 ---
 
 ### Loss Function — Residual Sum of Squares
 
-\`\`\`
-RSS(w) = ||y - Xw||²
-       = Σᵢ (yᵢ - wᵀxᵢ)²
-\`\`\`
+$$RSS(\\mathbf{w}) = \\|\\mathbf{y} - \\mathbf{X}\\mathbf{w}\\|^2 = \\sum_i (y_i - \\mathbf{w}^\\top \\mathbf{x}_i)^2$$
 
 Taking the gradient and setting to zero gives the **Normal Equations**:
 
-\`\`\`
-XᵀXw = Xᵀy
-\`\`\`
+$$\\mathbf{X}^\\top \\mathbf{X}\\mathbf{w} = \\mathbf{X}^\\top \\mathbf{y}$$
 
 ---
 
 ### Closed-Form Solution (OLS)
 
-\`\`\`
-w* = (XᵀX)⁻¹ Xᵀy
-\`\`\`
+$$\\mathbf{w}^* = (\\mathbf{X}^\\top \\mathbf{X})^{-1} \\mathbf{X}^\\top \\mathbf{y}$$
 
-Valid only when **XᵀX is invertible** (i.e. X has full column rank — no multicollinearity).
+Valid only when $\\mathbf{X}^\\top \\mathbf{X}$ **is invertible** (i.e. $\\mathbf{X}$ has full column rank — no multicollinearity).
 
 ---
 
 ### Ridge Regression (L2 Regularisation)
 
-Adds a penalty term λ||w||² to the loss:
+Adds a penalty term $\\lambda\\|\\mathbf{w}\\|^2$ to the loss:
 
-\`\`\`
-w*_ridge = (XᵀX + λI)⁻¹ Xᵀy
-\`\`\`
+$$\\mathbf{w}^*_{\\text{ridge}} = (\\mathbf{X}^\\top \\mathbf{X} + \\lambda \\mathbf{I})^{-1} \\mathbf{X}^\\top \\mathbf{y}$$
 
-- λ > 0 shrinks weights toward zero
-- **(XᵀX + λI) is always invertible** — solves the rank deficiency problem
+- $\\lambda > 0$ shrinks weights toward zero
+- $(\\mathbf{X}^\\top \\mathbf{X} + \\lambda \\mathbf{I})$ **is always invertible** — solves the rank deficiency problem
 - Introduces bias but reduces variance
 
 ---
 
 ### Bias–Variance Tradeoff
 
-\`\`\`
-Expected Error = Bias² + Variance + Irreducible Noise
-\`\`\`
+$$\\text{Expected Error} = \\text{Bias}^2 + \\text{Variance} + \\text{Irreducible Noise}$$
 
 | Model | Bias | Variance |
 |-------|------|----------|
@@ -76,45 +65,39 @@ Expected Error = Bias² + Variance + Irreducible Noise
 
 ### Goodness of Fit — R²
 
-\`\`\`
-R² = 1 - RSS / TSS     where TSS = Σᵢ (yᵢ - ȳ)²
-\`\`\`
+$$R^2 = 1 - \\frac{RSS}{TSS} \\quad \\text{where} \\quad TSS = \\sum_i (y_i - \\bar{y})^2$$
 
-- R² = 1 → perfect fit
-- R² = 0 → model no better than predicting the mean
-- R² < 0 → model worse than the mean (possible with ridge/lasso)
+- $R^2 = 1$ → perfect fit
+- $R^2 = 0$ → model no better than predicting the mean
+- $R^2 < 0$ → model worse than the mean (possible with ridge/lasso)
 
 ---
 
 ### Exam Tips 🎯
 
-- **Derive the normal equations** from ∂RSS/∂w = 0 — examiners love this
+- **Derive the normal equations** from $\\partial RSS / \\partial \\mathbf{w} = 0$ — examiners love this
 - Gradient descent converges to the same solution as OLS for convex MSE loss
-- Ridge regression is the go-to when XᵀX is near-singular
+- Ridge regression is the go-to when $\\mathbf{X}^\\top \\mathbf{X}$ is near-singular
 - Know when to use L1 (Lasso, sparse solutions) vs L2 (Ridge, smooth shrinkage)`;
 
 const NOTES_T2 = `## Logistic Regression
 
-**Goal:** Binary classification — model the probability P(y=1 | x) using a linear decision boundary passed through a sigmoid.
+**Goal:** Binary classification — model the probability $P(y=1 \\mid \\mathbf{x})$ using a linear decision boundary passed through a sigmoid.
 
 ---
 
 ### The Sigmoid Function
 
-\`\`\`
-σ(z) = 1 / (1 + e^{-z})     where z = wᵀx + b
-\`\`\`
+$$\\sigma(z) = \\frac{1}{1 + e^{-z}} \\quad \\text{where} \\quad z = \\mathbf{w}^\\top \\mathbf{x} + b$$
 
-- Output is always in (0, 1) → interpretable as probability
-- σ(0) = 0.5 → decision boundary at wᵀx = 0
+- Output is always in $(0, 1)$ → interpretable as probability
+- $\\sigma(0) = 0.5$ → decision boundary at $\\mathbf{w}^\\top \\mathbf{x} = 0$
 
 ---
 
 ### Loss Function — Binary Cross-Entropy
 
-\`\`\`
-L(w) = -Σᵢ [ yᵢ log(ŷᵢ) + (1 - yᵢ) log(1 - ŷᵢ) ]
-\`\`\`
+$$\\mathcal{L}(\\mathbf{w}) = -\\sum_i \\left[ y_i \\log(\\hat{y}_i) + (1 - y_i) \\log(1 - \\hat{y}_i) \\right]$$
 
 - Convex → single global minimum
 - **No closed-form solution** → must use gradient descent
@@ -123,23 +106,19 @@ L(w) = -Σᵢ [ yᵢ log(ŷᵢ) + (1 - yᵢ) log(1 - ŷᵢ) ]
 
 ### Gradient Descent Update
 
-\`\`\`
-∂L/∂w = Xᵀ (ŷ - y)
+$$\\frac{\\partial \\mathcal{L}}{\\partial \\mathbf{w}} = \\mathbf{X}^\\top (\\hat{\\mathbf{y}} - \\mathbf{y})$$
 
-w ← w - α · Xᵀ(ŷ - y)
-\`\`\`
+$$\\mathbf{w} \\leftarrow \\mathbf{w} - \\alpha \\cdot \\mathbf{X}^\\top(\\hat{\\mathbf{y}} - \\mathbf{y})$$
 
-where α is the learning rate and ŷ = σ(Xw).
+where $\\alpha$ is the learning rate and $\\hat{\\mathbf{y}} = \\sigma(\\mathbf{X}\\mathbf{w})$.
 
 ---
 
 ### Decision Boundary
 
-Predict class 1 if P(y=1|x) ≥ 0.5, equivalently if:
+Predict class 1 if $P(y=1|\\mathbf{x}) \\geq 0.5$, equivalently if:
 
-\`\`\`
-wᵀx + b ≥ 0
-\`\`\`
+$$\\mathbf{w}^\\top \\mathbf{x} + b \\geq 0$$
 
 The boundary is **linear in feature space**.
 
@@ -147,11 +126,9 @@ The boundary is **linear in feature space**.
 
 ### Multiclass — Softmax
 
-For K classes, generalise sigmoid to softmax:
+For $K$ classes, generalise sigmoid to softmax:
 
-\`\`\`
-P(y=k | x) = e^{wₖᵀx} / Σⱼ e^{wⱼᵀx}
-\`\`\`
+$$P(y=k \\mid \\mathbf{x}) = \\frac{e^{\\mathbf{w}_k^\\top \\mathbf{x}}}{\\sum_j e^{\\mathbf{w}_j^\\top \\mathbf{x}}}$$
 
 Loss becomes **categorical cross-entropy**.
 
@@ -161,7 +138,7 @@ Loss becomes **categorical cross-entropy**.
 
 - Logistic regression is a **linear classifier** — its boundary is a hyperplane
 - Cross-entropy loss is derived from maximum likelihood estimation (MLE)
-- Regularisation: add λ||w||² (L2) or λ||w||₁ (L1) to prevent overfitting
+- Regularisation: add $\\lambda\\|\\mathbf{w}\\|^2$ (L2) or $\\lambda\\|\\mathbf{w}\\|_1$ (L1) to prevent overfitting
 - Compare to Linear Discriminant Analysis (LDA): LDA makes Gaussian class-conditional assumptions`;
 
 const NOTES_T3 = `## Decision Trees

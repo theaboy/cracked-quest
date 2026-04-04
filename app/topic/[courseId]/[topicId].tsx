@@ -3,8 +3,13 @@ import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, StyleSheet
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import * as DocumentPicker from "expo-document-picker";
-import NoteRenderer from "../../../components/NoteRenderer";
+import * as Print from "expo-print";
+import * as Sharing from "expo-sharing";
+import NotesWebView from "../../../components/NotesWebView";
+import FlashcardModal from "../../../components/FlashcardModal";
+import TopicFlashcardModal from "../../../components/TopicFlashcardModal";
 import { useCourseStore } from "../../../store/useCourseStore";
+import { buildCheatsheetHTML } from "../../../lib/cheatsheetTemplate";
 import { colors, radii, spacing } from "../../../lib/theme";
 
 function statusLabel(s: "locked" | "in_progress" | "mastered") {
@@ -20,14 +25,19 @@ export default function TopicDetailScreen() {
   const router = useRouter();
   const courses = useCourseStore((s) => s.courses);
   const setTopicNotes = useCourseStore((s) => s.setTopicNotes);
+  const setTopicKeyPoints = useCourseStore((s) => s.setTopicKeyPoints);
   const course = courses.find((c) => c.id === courseId);
   const topic = course?.topics.find((t) => t.id === topicId);
 
   const [generatingNotes, setGeneratingNotes] = useState(false);
-  const [generatingDiagram, setGeneratingDiagram] = useState(false);
   const [generatingFromSlides, setGeneratingFromSlides] = useState(false);
-  const [diagramText, setDiagramText] = useState<string | null>(null);
   const [uploadedFileName, setUploadedFileName] = useState<string | null>(null);
+  const [generatingKeyPoints, setGeneratingKeyPoints] = useState(false);
+  const [generatingFlashcards, setGeneratingFlashcards] = useState(false);
+  const [flashcards, setFlashcards] = useState<{ front: string; back: string }[]>([]);
+  const [flashcardModalVisible, setFlashcardModalVisible] = useState(false);
+  const [quizModalVisible, setQuizModalVisible] = useState(false);
+  const [downloadingCheatsheet, setDownloadingCheatsheet] = useState(false);
 
   if (!course || !topic) {
     return (
@@ -119,16 +129,69 @@ export default function TopicDetailScreen() {
     }, 2000);
   }
 
-  function handleGenerateDiagram() {
-    setGeneratingDiagram(true);
+  function handleGenerateKeyPoints() {
+    setGeneratingKeyPoints(true);
     setTimeout(() => {
-      setDiagramText(
-        `[Diagram] ${topic!.name}:\n\nInput \u2192 Feature Extraction \u2192 Model Layer \u2192 Output\n\n` +
-        `Key decision boundaries are determined by learned parameters.\n` +
-        `See lecture slides \u00A73 for the visual representation.`
-      );
-      setGeneratingDiagram(false);
+      const points = [
+        `Core definition of ${topic!.name} and its mathematical formulation`,
+        `Key assumptions required for standard results in ${course!.code}`,
+        `Common exam patterns: derivations, edge cases, and worked examples`,
+        `Relationship to adjacent topics covered in ${course!.name}`,
+        `Pitfalls and misconceptions flagged in past ${course!.code} exams`,
+      ];
+      setTopicKeyPoints(courseId, topicId, points);
+      setGeneratingKeyPoints(false);
     }, 1500);
+  }
+
+  function handleGenerateFlashcards() {
+    setGeneratingFlashcards(true);
+    setTimeout(() => {
+      const cards = [
+        {
+          front: `Define: ${topic!.name}`,
+          back: `A core concept in ${course!.code} — refer to your notes for the precise formal definition and examples.`,
+        },
+        {
+          front: `What is the key formula or rule for ${topic!.name}?`,
+          back: `See the mathematical formulation from lecture §2. Pay attention to edge cases and boundary conditions.`,
+        },
+        {
+          front: `Name two exam-relevant edge cases for ${topic!.name}`,
+          back: `1) Boundary / degenerate inputs  2) Cases where standard assumptions break down`,
+        },
+        {
+          front: `How does ${topic!.name} relate to the rest of ${course!.name}?`,
+          back: `It serves as a building block for subsequent modules — mastering this topic unlocks the next concepts in the course.`,
+        },
+      ];
+      setFlashcards(cards);
+      setGeneratingFlashcards(false);
+      setFlashcardModalVisible(true);
+    }, 2000);
+  }
+
+  async function handleDownloadCheatsheet() {
+    setDownloadingCheatsheet(true);
+    try {
+      const html = buildCheatsheetHTML({
+        topicName: topic!.name,
+        courseCode: course!.code,
+        courseName: course!.name,
+        exams: relevantExams.map((e) => ({ name: e.name, examDate: e.examDate })),
+        keyPoints: topic!.keyPoints ?? [],
+        notes: topic!.notes ?? "",
+      });
+      const { uri } = await Print.printToFileAsync({ html });
+      await Sharing.shareAsync(uri, {
+        mimeType: "application/pdf",
+        dialogTitle: `${course!.code} — ${topic!.name} Cheat Sheet`,
+      });
+    } catch {
+      // user cancelled share sheet or sharing unavailable
+    } finally {
+      setDownloadingCheatsheet(false);
+    }
   }
 
   return (
@@ -194,7 +257,7 @@ export default function TopicDetailScreen() {
 
           {topic.notes ? (
             <View style={styles.notesCard}>
-              <NoteRenderer content={topic.notes} />
+              <NotesWebView content={topic.notes} />
             </View>
           ) : (
             <View style={styles.emptyState}>
@@ -250,28 +313,89 @@ export default function TopicDetailScreen() {
           )}
         </View>
 
-        {/* Diagram section */}
-        <View style={styles.section}>
-          <Text style={styles.sectionLabel}>DIAGRAM</Text>
-          {diagramText ? (
-            <View style={styles.diagramCard}>
-              <Text style={styles.diagramText}>{diagramText}</Text>
+        {/* Key Points section — only when notes exist */}
+        {topic.notes && (
+          <View style={styles.section}>
+            <Text style={styles.sectionLabel}>KEY POINTS</Text>
+            {topic.keyPoints && topic.keyPoints.length > 0 ? (
+              <View style={styles.keyPointsCard}>
+                {topic.keyPoints.map((point, idx) => (
+                  <View key={idx} style={styles.keyPointRow}>
+                    <Text style={styles.keyPointBullet}>▶</Text>
+                    <Text style={styles.keyPointText}>{point}</Text>
+                  </View>
+                ))}
+              </View>
+            ) : (
+              <TouchableOpacity
+                style={[styles.generateButtonSecondary, generatingKeyPoints && styles.generateButtonDisabled]}
+                onPress={handleGenerateKeyPoints}
+                disabled={generatingKeyPoints}
+              >
+                {generatingKeyPoints ? (
+                  <ActivityIndicator size="small" color={colors.primary} />
+                ) : (
+                  <Text style={styles.generateButtonSecondaryText}>Generate Key Points</Text>
+                )}
+              </TouchableOpacity>
+            )}
+          </View>
+        )}
+
+        {/* Tools section — only when notes exist */}
+        {topic.notes && (
+          <View style={styles.section}>
+            <Text style={styles.sectionLabel}>TOOLS</Text>
+            <View style={styles.toolsColumn}>
+              <TouchableOpacity
+                style={[styles.toolButton, downloadingCheatsheet && styles.generateButtonDisabled]}
+                onPress={handleDownloadCheatsheet}
+                disabled={downloadingCheatsheet}
+              >
+                {downloadingCheatsheet ? (
+                  <ActivityIndicator size="small" color={colors.white} />
+                ) : (
+                  <Text style={styles.toolButtonText}>Download Cheat Sheet</Text>
+                )}
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[styles.toolButton, generatingFlashcards && styles.generateButtonDisabled]}
+                onPress={handleGenerateFlashcards}
+                disabled={generatingFlashcards}
+              >
+                {generatingFlashcards ? (
+                  <ActivityIndicator size="small" color={colors.white} />
+                ) : (
+                  <Text style={styles.toolButtonText}>Generate Flashcards</Text>
+                )}
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.toolButtonSecondary}
+                onPress={() => setQuizModalVisible(true)}
+              >
+                <Text style={styles.toolButtonSecondaryText}>Practice Quiz</Text>
+              </TouchableOpacity>
             </View>
-          ) : (
-            <TouchableOpacity
-              style={[styles.generateButtonSecondary, generatingDiagram && styles.generateButtonDisabled]}
-              onPress={handleGenerateDiagram}
-              disabled={generatingDiagram}
-            >
-              {generatingDiagram ? (
-                <ActivityIndicator size="small" color={colors.primary} />
-              ) : (
-                <Text style={styles.generateButtonSecondaryText}>Generate Diagram</Text>
-              )}
-            </TouchableOpacity>
-          )}
-        </View>
+          </View>
+        )}
       </ScrollView>
+
+      <TopicFlashcardModal
+        visible={flashcardModalVisible}
+        onClose={() => setFlashcardModalVisible(false)}
+        flashcards={flashcards}
+        topicName={topic.name}
+        courseCode={course.code}
+      />
+
+      <FlashcardModal
+        visible={quizModalVisible}
+        onClose={() => setQuizModalVisible(false)}
+        courseCode={course.code}
+        topics={course.topics}
+      />
     </SafeAreaView>
   );
 }
@@ -517,17 +641,56 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: "700",
   },
-  diagramCard: {
+  keyPointsCard: {
     backgroundColor: colors.surface2,
     borderRadius: radii.md,
     padding: spacing.md,
     borderWidth: 1,
     borderColor: colors.border,
+    gap: 10,
   },
-  diagramText: {
-    color: colors.text2,
-    fontSize: 13,
-    lineHeight: 20,
-    fontFamily: "monospace",
+  keyPointRow: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    gap: 8,
+  },
+  keyPointBullet: {
+    color: colors.primary,
+    fontSize: 11,
+    lineHeight: 22,
+  },
+  keyPointText: {
+    color: colors.text1,
+    fontSize: 14,
+    lineHeight: 22,
+    flex: 1,
+  },
+  toolsColumn: {
+    gap: 12,
+  },
+  toolButton: {
+    backgroundColor: colors.primary,
+    paddingHorizontal: 20,
+    paddingVertical: 13,
+    borderRadius: radii.sm,
+    alignItems: "center",
+  },
+  toolButtonText: {
+    color: colors.white,
+    fontSize: 14,
+    fontWeight: "700",
+  },
+  toolButtonSecondary: {
+    borderWidth: 1,
+    borderColor: colors.primary,
+    paddingHorizontal: 20,
+    paddingVertical: 13,
+    borderRadius: radii.sm,
+    alignItems: "center",
+  },
+  toolButtonSecondaryText: {
+    color: colors.primary,
+    fontSize: 14,
+    fontWeight: "700",
   },
 });
