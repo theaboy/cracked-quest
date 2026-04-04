@@ -46,7 +46,7 @@ Props: `size?: number` (default 80)
 No props — reads `streakDays` from `useXpStore`.
 
 - Card: `colors.surface` background, `colors.border` border, `borderRadius: 14`
-- Left side: 🔥 emoji (28px) + streak count (24px bold gold) + "day streak" label
+- Left side: custom flame image (`assets/streak-flame.png`, 28x28) + streak count (24px bold gold) + "day streak" label
 - Right side: "BEST" label + hardcoded best streak value (e.g. 12 days)
 - Best streak is hardcoded for demo — `useXpStore` doesn't track it yet
 
