@@ -66,17 +66,17 @@ export function ModeToggle({ value, onChange }: ModeToggleProps) {
         activeOpacity={0.9}
         onPress={() => onChange(value === "focus" ? "deep" : "focus")}
       >
-        <Animated.View style={[styles.track, trackStyle]}>
-          {/* Labels */}
-          <View style={styles.labelsRow}>
-            <Animated.Text style={[styles.label, focusTextStyle]}>
-              FOCUS
-            </Animated.Text>
-            <Animated.Text style={[styles.label, deepTextStyle]}>
-              DEEP
-            </Animated.Text>
-          </View>
+        {/* Labels above the track */}
+        <View style={styles.labelsRow}>
+          <Animated.Text style={[styles.label, focusTextStyle]}>
+            FOCUS
+          </Animated.Text>
+          <Animated.Text style={[styles.label, deepTextStyle]}>
+            DEEP
+          </Animated.Text>
+        </View>
 
+        <Animated.View style={[styles.track, trackStyle]}>
           {/* Knob */}
           <Animated.View style={[styles.knob, knobStyle]}>
             <Animated.View style={[styles.knobInner, knobGradientStyle]}>
@@ -114,9 +114,9 @@ const styles = StyleSheet.create({
   labelsRow: {
     flexDirection: "row",
     justifyContent: "space-between",
-    paddingHorizontal: KNOB_SIZE / 2 + KNOB_MARGIN + 8,
-    position: "absolute",
-    width: "100%",
+    width: TRACK_WIDTH,
+    paddingHorizontal: 4,
+    marginBottom: 8,
   },
   label: {
     color: colors.text1,

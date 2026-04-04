@@ -289,8 +289,9 @@ export default function StudyScreen() {
             ))}
           </View>
 
-          <Text style={[styles.sectionLabel, { marginTop: 24 }]}>MODE</Text>
-          <ModeToggle value={selectedMode} onChange={setSelectedMode} />
+          <View style={{ marginTop: 24 }}>
+            <ModeToggle value={selectedMode} onChange={setSelectedMode} />
+          </View>
 
           <TouchableOpacity style={styles.startButton} onPress={handleStartSession}>
             <Text style={styles.startButtonText}>Start Session</Text>
