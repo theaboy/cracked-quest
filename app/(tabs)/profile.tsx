@@ -9,7 +9,8 @@ import { XpAnimatedCounter } from "../../components/XpAnimatedCounter";
 import { RankBadge } from "../../components/RankBadge";
 
 export default function ProfileScreen() {
-  const xpTotal = useXpStore((s) => s.xpTotal);
+  const xpTotal    = useXpStore((s) => s.xpTotal);
+  const streakDays = useXpStore((s) => s.streakDays);
   const tier = getCurrentTier(xpTotal);
   const { animatedXp, displayXp } = useXpAnimation();
 
@@ -37,6 +38,14 @@ export default function ProfileScreen() {
 
         {/* Divider */}
         <View style={styles.divider} />
+
+        {/* Streak stat — Issue #12 */}
+        <View style={styles.statRow}>
+          <Text style={styles.statLabel}>Streak</Text>
+          <Text style={styles.statValue}>
+            {streakDays > 0 ? `\uD83D\uDD25 ${streakDays} day streak` : "No streak yet"}
+          </Text>
+        </View>
 
         {/* Placeholder for leaderboard/stats — issue #5 */}
         <View style={styles.placeholder}>
@@ -93,5 +102,22 @@ const styles = StyleSheet.create({
   placeholderText: {
     color: colors.text3,
     fontSize: 14,
+  },
+  statRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingHorizontal: 20,
+    paddingVertical: 14,
+  },
+  statLabel: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: colors.text2,
+  },
+  statValue: {
+    fontSize: 14,
+    fontWeight: "700",
+    color: colors.text1,
   },
 });
