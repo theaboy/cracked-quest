@@ -103,7 +103,6 @@ export async function scheduleExamCountdowns(courses: Course[]): Promise<void> {
             title: `${course.code} ${exam.name} is ${dayLabel}`,
             body,
             data: { examId: exam.id, courseId: course.id },
-            ...(Platform.OS === "android" && { channelId: CHANNEL_EXAMS }),
           },
           trigger: {
             type: SchedulableTriggerInputTypes.DATE,
@@ -132,7 +131,6 @@ export async function scheduleDailyReminders(): Promise<void> {
       title: "Your streak is at risk! 🔥",
       body: "You haven't studied today. Log a session to keep your streak alive.",
       data: { type: "streak" },
-      ...(Platform.OS === "android" && { channelId: CHANNEL_STREAK }),
     },
     trigger: {
       type: SchedulableTriggerInputTypes.DAILY,
@@ -149,7 +147,6 @@ export async function scheduleDailyReminders(): Promise<void> {
       title: "Time to get cracked 📚",
       body: "Open the app and start a study session. Your exams won't beat themselves.",
       data: { type: "study" },
-      ...(Platform.OS === "android" && { channelId: CHANNEL_STUDY }),
     },
     trigger: {
       type: SchedulableTriggerInputTypes.DAILY,
