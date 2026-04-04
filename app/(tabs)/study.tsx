@@ -324,8 +324,22 @@ export default function StudyScreen() {
         <DeepModeTransition onComplete={handleTransitionComplete} />
       )}
 
-      {/* ── ACTIVE TIMER VIEW ── */}
-      {(view === "active" || view === "summary") && deepPhase !== "transition" && (
+      {/* ── DEEP MODE ACTIVE VIEW (replaces normal timer) ── */}
+      {view === "active" && deepPhase === "active" && (
+        <DeepModeOverlay
+          isPaused={isPaused}
+          onPause={pauseSession}
+          onResume={resumeSession}
+          onEndSession={handleEndSession}
+          deepSecondsLeft={deepSecondsLeft}
+          nextBreakIn={nextBreakIn}
+          isOnBreak={isOnBreak}
+          breakSecondsLeft={breakSecondsLeft}
+        />
+      )}
+
+      {/* ── FOCUS MODE ACTIVE TIMER VIEW ── */}
+      {(view === "active" || view === "summary") && deepPhase !== "transition" && deepPhase !== "active" && (
         <View style={styles.activeContent}>
           <Text style={styles.modeLabel}>
             {selectedMode.toUpperCase()} MODE
@@ -351,16 +365,6 @@ export default function StudyScreen() {
             <TouchableOpacity style={styles.quizCheckpointButton} onPress={handleOpenQuiz}>
               <Text style={styles.quizCheckpointButtonText}>Quiz Checkpoint</Text>
             </TouchableOpacity>
-          )}
-
-          {/* Deep Mode overlay (absoluteFill, renders on top) */}
-          {deepPhase === "active" && view === "active" && (
-            <DeepModeOverlay isPaused={isPaused} onPause={pauseSession} onResume={resumeSession} onEndSession={handleEndSession}
-              deepSecondsLeft={deepSecondsLeft}
-              nextBreakIn={nextBreakIn}
-              isOnBreak={isOnBreak}
-              breakSecondsLeft={breakSecondsLeft}
-            />
           )}
         </View>
       )}
