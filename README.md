@@ -11,7 +11,7 @@
   <img src="https://img.shields.io/badge/TypeScript-3178C6?style=flat&logo=typescript&logoColor=white" />
   <img src="https://img.shields.io/badge/Babylon.js-3D-BB4B44?style=flat&logo=babylondotjs&logoColor=white" />
   <img src="https://img.shields.io/badge/Supabase-3ECF8E?style=flat&logo=supabase&logoColor=white" />
-  <img src="https://img.shields.io/badge/Claude-AI-D97757?style=flat" />
+  <img src="https://img.shields.io/badge/LLM-AI-9B6DFF?style=flat" />
   <img src="https://img.shields.io/badge/Phase%201-McGill-red?style=flat" />
 </p>
 
@@ -51,7 +51,7 @@ StudyQuest fixes all three with one mechanic: turn the behavior you want into a 
 
 **Deep Mode (locked):** Full OS-level distraction block via iOS Screen Time and Android Accessibility Service. Exits cost rank points unless earned through a quiz.
 
-**AI Tutor:** Context-aware chat powered by Claude. Pre-loaded with course material, current topic, and exam timeline. Pushes back, asks follow-ups, prompts students to explain concepts — closer to a study partner than a homework cheat.
+**AI Tutor:** Context-aware chat powered by an LLM. Pre-loaded with course material, current topic, and exam timeline. Pushes back, asks follow-ups, prompts students to explain concepts — closer to a study partner than a homework cheat.
 
 ### 🏆 The Rank — a reputation system for academic effort
 
@@ -105,8 +105,9 @@ Students upload lecture notes, past exams, and study guides. Everything is tagge
          │            │
          │            ▼
          │    ┌───────────────┐
-         │    │  Claude API   │   claude-sonnet-4
-         │    │  (Anthropic)  │
+         │    │   LLM API     │   reasoning-grade model
+         │    │   (server-    │   called only from the
+         │    │    side only) │   Edge Function tier
          │    └───────────────┘
          │
          ▼
@@ -119,7 +120,7 @@ Students upload lecture notes, past exams, and study guides. Everything is tagge
 
 **Architecture rules we do not break:**
 
-- **The client never calls Claude directly.** Every AI call is brokered by a Supabase Edge Function so the API key never leaves the server.
+- **The client never calls the LLM directly.** Every AI call is brokered by a Supabase Edge Function so the API key never leaves the server.
 - **XP is server-awarded.** A dedicated `award_xp` Edge Function is the only path that can mutate XP — no client can forge progression.
 - **The 3D map requires native modules.** Babylon.js on RN means prebuild is required; the app will not render the map in Expo Go.
 
@@ -136,7 +137,7 @@ Students upload lecture notes, past exams, and study guides. Everything is tagge
 | State | Zustand v5 |
 | 3D progression map | Babylon.js via `@babylonjs/react-native` |
 | Backend + Auth + DB + Storage | Supabase (Postgres) |
-| AI gateway | Supabase Edge Functions (Deno) → Claude (`claude-sonnet-4-20250514`) |
+| AI gateway | Supabase Edge Functions (Deno) → hosted LLM (swappable provider) |
 | Notifications | Expo Notifications |
 
 ---
@@ -191,7 +192,7 @@ supabase functions deploy flashcards
 supabase functions deploy award_xp
 ```
 
-You'll need a Supabase project with the schema in `supabase/` applied and `ANTHROPIC_API_KEY` configured as a Function secret.
+You'll need a Supabase project with the schema in `supabase/` applied and an LLM provider API key configured as a Function secret.
 
 ---
 
@@ -214,7 +215,7 @@ supabase/functions/     Edge Functions (breakdown, quiz-gen, flashcards, award_x
 assets/                 Mascot, 3D models, fonts, images
 PRD.md                  Full product requirements
 TECH_SPEC.md            Architecture, schema, Edge Function contracts
-CLAUDE.md               Project memory + conventions for AI contributors
+CLAUDE.md               Internal dev-tool memory file (not user-facing)
 ```
 
 ---
